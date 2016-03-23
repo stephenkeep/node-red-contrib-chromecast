@@ -1,0 +1,35 @@
+{
+  "name": "node-red-contrib-chromecast",
+  "version": "0.0.0",
+  "description": "NodeRED nodes to for Chromecast",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "predev": "npm i -g",
+    "dev": "node-red -v"
+  },
+  "author": "Stephen Keep",
+  "contributors": [
+    {
+      "name": "Stephen Keep",
+      "email": "stephenkeep@gmail.com"
+    }
+  ],
+  "keywords": [
+    "contrib-chromecast",
+    "chromecast"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stephenkeep/node-red-contrib-chromecast"
+  },
+  "dependencies": {
+    "castv2-client": "^1.1.1"
+  },
+  "node-red": {
+    "nodes": {
+      "chromecast-play": "chromecast-play.js"
+    }
+  }
+}
