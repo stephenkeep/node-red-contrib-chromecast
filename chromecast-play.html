@@ -27,6 +27,11 @@
         <label for="node-input-ip">IP</label>
         <input type="text" id="node-input-ip" placeholder="0.0.0.0">
     </div>
+	
+	<div class="form-row">
+        <label for="node-input-volume">Volume</label>
+        <input type="number" id="node-input-volume" placeholder="0">
+    </div>
         
 </script>
 
@@ -38,8 +43,8 @@
     <p>Plays a Media file on a chromecast</p>
 
     <h3>Use</h3>
-    <p>To use pass in the IP address of the chromecast <code>payload.ip_address</code> and a url to a media file <code>payload.url</code>.
-    </p>
+    <p>To use pass in the IP address of the chromecast <code>payload.ip_address</code> and a url to a media file <code>payload.url</code>.</p>
+    <p><code>payload.volume</code> is optional - if not passed it will use current volume.</p>
 </script>
 
 <!-- Finally, the node type is registered along with all of its properties   -->
@@ -52,6 +57,7 @@
             url: {value:""},
             contentType: {value:""},
             ip: {value:""},
+			volume: {value:null},
         },
         inputs:1,               // set the number of inputs - only 0 or 1
         outputs:1,              // set the number of outputs - 0 to n
