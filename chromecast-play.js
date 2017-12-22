@@ -1,7 +1,7 @@
 var Client                = require('castv2-client').Client;
 var DefaultMediaReceiver  = require('castv2-client').DefaultMediaReceiver;
 
-function play(host, url, type, volume) {
+function play(host, url, type, volume, node, msg) {
 
   var client = new Client();
 
@@ -31,7 +31,17 @@ function play(host, url, type, volume) {
 		}
 		
 		  client.setVolume(obj, function(err, newvol){
-				if(err) console.log("there was an error setting the volume")
+				if(err) {
+					console.log("there was an error setting the volume")
+					node.error("Chromecast error: there was an error setting the volume");
+					msg.error = "there was an error setting the volume";
+					node.send(msg);
+					return node.status({
+					  shape: "dot",
+					  fill: "red",
+					  text: "error: there was an error setting the volume" 
+					});
+				}
 				console.log("volume changed to %s", Math.round(newvol.level * 100))
 			});
 			
@@ -40,14 +50,26 @@ function play(host, url, type, volume) {
       player.load(media, { autoplay: true }, function(err, status) {
 		if(status) {
 			console.log('media loaded playerState=%s', status.playerState);
+			node.status({});
 		}
 		if(err) {
-			console.log('media loaded err=%s', err);
+			console.log('media loaded error= %s', err);
+			msg.error = " " +err;
+			node.send(msg);
+			return node.status({
+			  shape: "dot",
+			  fill: "red",
+			  text: " " +err
+			});
+			node.error("Chromecast error: " + err);
 		}
 		
           client.close();
+		  
       });
-
+	  
+	  node.send(msg);
+	  
     });
 
   });
@@ -75,10 +97,11 @@ module.exports = function(RED) {
             }
 
             if (payload.ip && payload.url && payload.contentType) {
-                play(payload.ip, payload.url, payload.contentType, payload.volume);
+                play(payload.ip, payload.url, payload.contentType, payload.volume, node, msg);
             }
-            
-            node.send(msg);
+			
+			//node.send(msg);
+			
         });
     }
 
