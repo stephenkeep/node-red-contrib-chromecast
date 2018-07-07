@@ -49,7 +49,14 @@ module.exports = function(RED) {
             }
 
             if (payload.ip && payload.url && payload.contentType) {
+              try {
                 play(payload.ip, payload.url, payload.contentType);
+              } catch (err) {
+                node.error('Error send data to ' + payload.ip + ': ' + err.message);
+                return null;
+              }
+            } else {
+              node.warn('Can not send to cast device, because input parameter missing!');
             }
             
             node.send(msg);
