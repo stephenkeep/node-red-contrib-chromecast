@@ -1,10 +1,10 @@
-# Chromecast for NodeRED
+# node-red-contrib-cast for NodeRED
 
-A node to play media on a chromecast
+These nodes are based on a fork of the node-red-contrib-chromecast. It is for play media on a chromecast or a google home device.
 
 ## Installation
 
-`npm install node-red-contrib-chromecast`
+`npm install node-red-contrib-cast`
 
 ## Quick Start
 
@@ -14,5 +14,5 @@ Simple flow that sends an mp3 to the chromecast:
 
 ## Implemented Nodes
 
- * Play Node - Send media to chromecast
+ * Play Node - Send media to chromecast or 
  * Discovery Node - (TODO) Discover nearby chromecasts
