@@ -32,8 +32,8 @@
     "url": "https://github.com/Hypnos3/node-red-contrib-cast"
   },
   "dependencies": {
-    "castv2-client": "^1.2.0",
-    "google-tts-api" : "^0.0.2"
+    "castv2-client": "*",
+    "google-tts-api" : "*"
   },
   "node-red": {
     "nodes": {

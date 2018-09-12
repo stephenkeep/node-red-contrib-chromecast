@@ -1,8 +1,10 @@
 <script type="text/x-red" data-template-name="cast-to-client">
-    <div class="form-row">
-        <label for="node-input-creds">Credentials</label>
-        <input type="text" id="node-input-creds">
-    </div>
+    <!--
+        <div class="form-row">
+            <label for="node-input-creds">Credentials</label>
+            <input type="text" id="node-input-creds">
+        </div>
+    -->
     
     <!-- By convention, most nodes have a 'name' property. The following div -->
     <!-- provides the necessary field. Should always be the last option      -->
@@ -12,7 +14,7 @@
     </div>
 
     <div class="form-row">
-        <label for="node-input-ip"><i class="fa-google"></i> IP</label>
+        <label for="node-input-ip"><i class="fa fa-google"></i> IP</label>
         <input type="text" id="node-input-ip" placeholder="0.0.0.0">
     </div>
     <div class="form-row">
@@ -21,27 +23,27 @@
     </div>
 
     <div class="form-row">
-        <label for="node-input-url"><i class="fa-file-audio-o"></i> Media Url</label>
+        <label for="node-input-url"><i class="fa fa-file-audio-o"></i> Media Url</label>
         <input type="text" id="node-input-url" placeholder="(optional) Media Url">
     </div>
     
     <div class="form-row">
-        <label for="node-input-contentType"><i class="fa-file-o"></i> Media Type</label>
+        <label for="node-input-contentType"><i class="fa fa-file-o"></i> Media Type</label>
         <input type="text" id="node-input-contentType" placeholder="audio/mp3">
     </div>
 
     <div class="form-row">
-        <label for="node-input-message"><i class="fa-commenting-o"></i> Message</label>
+        <label for="node-input-message"><i class="fa fa-commenting-o"></i> Message</label>
         <input type="text" id="node-input-message" placeholder="(optional) Text to speach">
     </div>
 
     <div class="form-row">
-        <label for="node-input-language"><i class="fa-language"></i> Language</label>
+        <label for="node-input-language"><i class="fa fa-language"></i> Language</label>
         <input type="text" id="node-input-language" placeholder="en">
     </div>
 
     <div class="form-row">
-        <label for="node-input-volume"><i class="fa-volume-up"></i> Volume</label>
+        <label for="node-input-volume"><i class="fa fa-volume-up"></i> Volume</label>
         <input type="number" id="node-input-volume" placeholder="0">
     </div>
 
@@ -67,10 +69,9 @@
 	<ol>
 		<li>play a media file<br />
 		For this the url and the content type needs to be specified. Thus can 
-		be done in the configuration or pass as a message property <code>msg.url</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.url</code> and <code>msg.payload.contentType</code></li>
+		be done in the configuration or pass as a message property <code>msg.url</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.url</code> and <code>msg.payload.contentType</code><br /></li>
 		<li>speak a given message, converted by google tts<br />
-		For this the 
-		message needs to be specified. Thus can 
+		For this the message needs to be specified. Thus can 
 		be done in the configuration or pass as a message property <code>msg.message</code> or give a payload object with the property <code>msg.payload.message</code></li>
 	</ol>
     <p>If there is a combination of both, first the media file given by URL will
@@ -122,7 +123,7 @@
             port: {
                 value:"",
                 required: false,
-                validate: RED.validators.number() //RED.validators.regex(/^(\s*|\d+)$/)
+                validate: RED.validators.regex(/^(\s*|\d+)$/) //RED.validators.number() does'n work, because can be empty
             },
             volume: {
                 value:null,

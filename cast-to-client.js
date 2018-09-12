@@ -103,7 +103,7 @@ module.exports = function(RED) {
             /********************************************
             * versenden:
             *********************************************/
-            var creds = RED.nodes.getNode(config.creds);
+            //var creds = RED.nodes.getNode(config.creds); - not used
             let attrs = ['url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted'];
             var data = {};
             for (var attr of attrs) {
