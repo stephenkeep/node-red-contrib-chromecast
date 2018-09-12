@@ -1,0 +1,152 @@
+<script type="text/x-red" data-template-name="cast-to-client">
+    <div class="form-row">
+        <label for="node-input-creds">Credentials</label>
+        <input type="text" id="node-input-creds">
+    </div>
+    
+    <!-- By convention, most nodes have a 'name' property. The following div -->
+    <!-- provides the necessary field. Should always be the last option      -->
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name of this Event">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-ip"><i class="fa-google"></i> IP</label>
+        <input type="text" id="node-input-ip" placeholder="0.0.0.0">
+    </div>
+    <div class="form-row">
+        <label for="node-input-port">Port</label>
+        <input type="text" id="node-input-port" placeholder="8009">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-url"><i class="fa-file-audio-o"></i> Media Url</label>
+        <input type="text" id="node-input-url" placeholder="(optional) Media Url">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-contentType"><i class="fa-file-o"></i> Media Type</label>
+        <input type="text" id="node-input-contentType" placeholder="audio/mp3">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-message"><i class="fa-commenting-o"></i> Message</label>
+        <input type="text" id="node-input-message" placeholder="(optional) Text to speach">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-language"><i class="fa-language"></i> Language</label>
+        <input type="text" id="node-input-language" placeholder="en">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-volume"><i class="fa-volume-up"></i> Volume</label>
+        <input type="number" id="node-input-volume" placeholder="0">
+    </div>
+
+    <div class="form-tips"><b>Tip:</b> You can also define all properties as part of the incomming message.<br />
+        <code>msg.url</code> or <code>msg.payload.url</code><br />
+        <code>msg.contentType</code> / <code>msg.payload.contentType</code><br />
+        <code>msg.message</code> / <code>msg.payload.message</code><br />
+        <code>msg.language</code> / <code>msg.payload.language</code><br />
+        <code>msg.ip</code> / <code>msg.payload.ip</code> the IP address of the device to cast<br />
+        <code>msg.port</code> / <code>msg.payload.port</code> the port of the device (if not given default <code>8009</code> will be used)<br />
+        <code>msg.volume</code> / <code>msg.payload.volume</code> (optional) a number 0-100 whhere the volume should be set<br />
+    </div>
+</script>
+
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/x-red" data-help-name="cast-to-client">
+    <h3>About</h3>
+    <p>Plays a Media file on a chromecast or a Home device</p>
+
+    <h3>Use</h3>
+    <p>there are 2 different use cases:</p>
+	<ol>
+		<li>play a media file<br />
+		For this the url and the content type needs to be specified. Thus can 
+		be done in the configuration or pass as a message property <code>msg.url</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.url</code> and <code>msg.payload.contentType</code></li>
+		<li>speak a given message, converted by google tts<br />
+		For this the 
+		message needs to be specified. Thus can 
+		be done in the configuration or pass as a message property <code>msg.message</code> or give a payload object with the property <code>msg.payload.message</code></li>
+	</ol>
+    <p>If there is a combination of both, first the media file given by URL will
+	be streamed and then the message media file.</p>
+	<p>If the payload is a string and no contentType is defined, the payload 
+	will be used as a message which should be spoken.</p>
+	<p>Possible Options:<br />
+	<code>msg.ip</code> / <code>msg.payload.ip</code> the IP address of the device to cast<br />
+	<code>msg.port</code> / <code>msg.payload.port</code> the port of the device (if not given default <code>8009</code> will be used)<br />
+	<code>msg.volume</code> / <code>msg.payload.volume</code> (optional) a number 0-100 whhere the volume should be set<br />
+	<code>msg.lowerVolumeLimit</code> / <code>msg.payload.lowerVolumeLimit</code> (optional) a number 0-100, if the current volume is below this limit, volumewill set to this value<br />
+	<code>msg.upperVolumeLimit</code> / <code>msg.payload.upperVolumeLimit</code> (optional) a number 0-100, if the current volume is above this limit, volumewill set to this value<br />
+	<code>msg.muted</code> / <code>msg.payload.muted</code> (optional) a boolean true or false if the volume shoule be muted<br />
+	</p>
+
+</script>
+
+<!-- Finally, the node type is registered along with all of its properties   -->
+<!-- The example below shows a small subset of the properties that can be set-->
+<script type="text/javascript">
+    RED.nodes.registerType('cast-to-client', {
+        category: 'function',
+        defaults: {
+            name: {
+                value:"",
+                required: false
+            },
+            url: {
+                value:null,
+                required: false
+            },
+            contentType: {
+                value:"",
+                required: false
+            },
+            message: {
+                value:null,
+                required: false
+            },
+            language: {
+                value:"en",
+                required: false
+            },            
+            ip: {
+                value:"",
+                required: false,
+                validate: RED.validators.regex(/^(\s*|(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$/)
+            },
+            port: {
+                value:"",
+                required: false,
+                validate: RED.validators.number() //RED.validators.regex(/^(\s*|\d+)$/)
+            },
+            volume: {
+                value:null,
+                required: false,
+                validate:function(v) {
+                        if (!v) {
+                            return true; //empty
+                        } else if (/^\d+$/.test(v)) {
+                            return (parseInt(v) >= 0 && parseInt(v) <= 100);
+                        }
+                        return false;
+                }
+            }
+        },
+        inputs:1,               // set the number of inputs - only 0 or 1
+        outputs:1,              // set the number of outputs - 0 to n
+        icon: "bridge.png",     // saved in  icons/myicon.png
+        color: "#FFFF00", 
+        label: function() {
+            return this.name || "Play";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        paletteLabel: "Play"
+    });
+</script>

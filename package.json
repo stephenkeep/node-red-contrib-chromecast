@@ -1,36 +1,43 @@
 {
-  "name": "node-red-contrib-chromecast",
+  "name": "node-red-contrib-cast",
   "version": "0.0.1",
-  "description": "NodeRED nodes to for Chromecast",
+  "description": "NodeRED nodes to for Chromecast and Google Home",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "predev": "npm i -g",
     "dev": "node-red -v"
   },
-  "author": "Stephen Keep",
+  "author": "Robert Gester",
   "contributors": [
     {
       "name": "Stephen Keep",
       "email": "stephenkeep@gmail.com"
+    }, {
+      "name": "Robert Gester",
+      "email": "nowhere@gmail.com"
     }
   ],
   "keywords": [
     "node-red",
+    "contrib-cast",
     "contrib-chromecast",
-    "chromecast"
+    "chromecast",
+    "googlehome",
+    "cast-to-client"
   ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stephenkeep/node-red-contrib-chromecast"
+    "url": "https://github.com/Hypnos3/node-red-contrib-cast"
   },
   "dependencies": {
-    "castv2-client": "^1.1.1"
+    "castv2-client": "^1.2.0",
+    "google-tts-api" : "^0.0.2"
   },
   "node-red": {
     "nodes": {
-      "chromecast-play": "chromecast-play.js"
+      "cast-to-client": "cast-to-client.js"
     }
   }
 }
