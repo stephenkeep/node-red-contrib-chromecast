@@ -8,14 +8,14 @@
     "predev": "npm i -g",
     "dev": "node-red -v"
   },
-  "author": "Stephen Keep",
+  "author": "Robert Gester",
   "contributors": [
     {
       "name": "Stephen Keep",
       "email": "stephenkeep@gmail.com"
     }, {
       "name": "Robert Gester",
-      "email": "nowhere@gmail.com"
+      "email": "hypnos3@online.de"
     }
   ],
   "keywords": [
@@ -32,8 +32,8 @@
     "url": "https://github.com/Hypnos3/node-red-contrib-cast"
   },
   "dependencies": {
-    "castv2-client": "*",
-    "google-tts-api" : "*"
+    "castv2-client": "1.2.0",
+    "google-tts-api" : "0.0.2"
   },
   "node-red": {
     "nodes": {

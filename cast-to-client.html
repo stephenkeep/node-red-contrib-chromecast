@@ -47,7 +47,7 @@
         <input type="number" id="node-input-volume" placeholder="0-100">
     </div>
 
-    <div class="form-tips"><b>Tip:</b> You can also define all properties as part of the incomming message.<br />
+    <div class="form-tips"><b>Tip:</b> You can also define all properties as part of the incomming message. This would be used priorized than the settings here.<br />
         <code>msg.url</code> or <code>msg.payload.url</code><br />
         <code>msg.contentType</code> / <code>msg.payload.contentType</code><br />
         <code>msg.message</code> / <code>msg.payload.message</code><br />
@@ -127,7 +127,13 @@
      be streamed and then the message media file.</p>
      <p>If the payload is a string and no contentType is defined, the payload 
      will be used as a message which should be spoken.</p>
+
+     <h3>References</h3>
+    <ul>
+		<li><a href="https://github.com/Hypnos3/node-red-contrib-cast">GitHub</a> - the nodes github repository</li>
+    </ul>
      
+
 </script>
 
 <!-- Finally, the node type is registered along with all of its properties   -->
@@ -181,7 +187,7 @@
         },
         inputs:1,               // set the number of inputs - only 0 or 1
         outputs:1,              // set the number of outputs - 0 to n
-        icon: "icons/cast.png",     // saved in  icons/myicon.png - bridge.png
+        icon: "icons/castcli.png",     // saved in  icons/myicon.png - bridge.png
         color: "#FFFF00", 
         label: function() {
             return this.name || "Cast";
