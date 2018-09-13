@@ -9,9 +9,7 @@
 
 These nodes are based on a fork of the node-red-contrib-chromecast. It is for play media on a chromecast or a google home device.
 
-<Warning>
-Warning, this is still in development!!
-</Warning>
+> Warning, this is still in development!!
 
 ## Installation
 
