@@ -14,7 +14,8 @@ const getSpeechUrl = function(text, language, options, callback) {
 
 const doPlay = function(url, type, options, callback) {
     var client = new Client();
-    client.connect(options.ip, options.port, function() {
+    
+    const doConnect =  function() {
       client.launch(DefaultMediaReceiver, (err, player) => {
   
         var media = {
@@ -66,8 +67,14 @@ const doPlay = function(url, type, options, callback) {
           callback(status);
         });
       });
-    });
-  
+    };
+
+    if (typeof data.port === 'undefined') {
+        client.connect(options.ip, doConnect);
+    } else {
+        client.connect(options.ip, options.port,doConnect);
+    }
+
     client.on('error', (err) => {
       node.error('Error:' + err.message);
       node.status({fill:"red",shape:"dot",text:"error"});        
@@ -132,9 +139,6 @@ module.exports = function(RED) {
             if (typeof data.ip === 'undefined') {
                 this.error("configuraton error: IP is missing!");
                 return;
-            }
-            if (typeof data.port === 'undefined') {
-                data.options.port = 8009;
             }
             if (typeof data.language === 'undefined') {
                 data.language = 'en';
