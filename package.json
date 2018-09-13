@@ -11,10 +11,6 @@
   "author": "Stephen Keep",
   "contributors": [
     {
-      "name": "Robert",
-      "email": "robdg@online.de"
-    },
-    {
       "name": "Stephen Keep",
       "email": "stephenkeep@gmail.com"
     }, {
@@ -38,7 +34,6 @@
   "dependencies": {
     "castv2-client": "*",
     "google-tts-api" : "*"
-  },
   },
   "node-red": {
     "nodes": {
