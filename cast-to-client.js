@@ -1,3 +1,6 @@
+/********************************************
+* cast-to-client:
+*********************************************/
 const Client                = require('castv2-client').Client;
 const DefaultMediaReceiver  = require('castv2-client').DefaultMediaReceiver;
 const googletts             = require('google-tts-api');
@@ -31,8 +34,8 @@ const doPlay = function(url, type, options, callback) {
                 obj = { muted: true };
             }
             client.setVolume(obj, function(err, newvol){
-                if(err) console.log("there was an error setting the volume")
-                console.log("volume changed to %s", Math.round(newvol.level * 100))
+                if(err) console.log("there was an error setting the volume");
+                console.log("volume changed to %s", Math.round(newvol.level * 100));
             });
         } else
         if(typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
@@ -44,17 +47,16 @@ const doPlay = function(url, type, options, callback) {
                     obj = { level: options.lowerVolumeLimit };
                 }
                 client.setVolume(obj, function(err, newvol){
-                    if(err) console.log("there was an error setting the volume")
-                    console.log("volume changed to %s", Math.round(newvol.level * 100))
+                    if(err) console.log("there was an error setting the volume");
+                    console.log("volume changed to %s", Math.round(newvol.level * 100));
                 });                
             });
         }
        
-        
         if (typeof options.muted !== 'undefined') {
-            client.setVolume({ muted: (options.muted == true) }, function(err, newvol){
-                if(err) console.log("there was an error setting the volume")
-                console.log("volume changed to %s", Math.round(newvol.level * 100))
+            client.setVolume({ muted: (options.muted === true) }, function(err, newvol){
+                if(err) console.log("there was an error setting the volume");
+                console.log("volume changed to %s", Math.round(newvol.level * 100));
             });
         }
 
@@ -84,10 +86,8 @@ const doPlay = function(url, type, options, callback) {
   };
 
 module.exports = function(RED) {
-    'use strict';
     function CastNode(config) {
         RED.nodes.createNode(this,config);
-        // node-specific code goes here
         var node = this;
         
         this.on('input', function (msg) {
@@ -95,23 +95,27 @@ module.exports = function(RED) {
             //Error Handling
             if (!Client) {
                 this.error('Client not defined!! - Installation Problem, Please reinstall!');
+                this.status({fill:"red",shape:"dot",text:"installation error"});
                 return;
             }
             
             if (!DefaultMediaReceiver) {
                 this.error('DefaultMediaReceiver not defined!! - Installation Problem, Please reinstall!');
+                this.status({fill:"red",shape:"dot",text:"installation error"});
                 return;
             }
             
             if (!googletts) {
                 this.error('googletts not defined!! - Installation Problem, Please reinstall!');
+                this.status({fill:"red",shape:"dot",text:"installation error"});
                 return;
             }
             /********************************************
             * versenden:
             *********************************************/
             //var creds = RED.nodes.getNode(config.creds); - not used
-            let attrs = ['url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted'];
+            let attrs = ['url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay'];
+            
             var data = {};
             for (var attr of attrs) {
                 if (config[attr]) {
@@ -138,6 +142,7 @@ module.exports = function(RED) {
             //----------------------------------
             if (typeof data.ip === 'undefined') {
                 this.error("configuraton error: IP is missing!");
+                this.status({fill:"red",shape:"dot",text:"No IP given!"});
                 return;
             }
             if (typeof data.language === 'undefined') {
@@ -158,30 +163,38 @@ module.exports = function(RED) {
             } else {
                 delete data.upperVolumeLimit;
             }
-
+            if (typeof data.delay === 'undefined' || isnan(data.delay) || (data.delay < 1000)) {
+                data.delay = 250;
+            }
             try {
                 msg.payload = data;
 
                 if (data.contentType && data.url) {
-                    this.status({fill:"green",shape:"dot",text:"play from url (" + data.contentType + ")"});
+                    this.status({fill:"green",shape:"dot",text:"play from url (" + data.contentType + ") on " + data.ip});
                     doPlay(data.url, data.contentType, data, (res) =>{
+                        msg.payload.result = res;
                         if (data.message && data.language) {
-                            this.status({fill:"green",shape:"ring",text:"play message"});
-                            getSpeechUrl(data.message, data.language, data, (resurl) => {
-                                    msg.payload.result = res;
-                                    node.send(msg);
-                                });
+                            setTimeout(() => {
+                                this.status({fill:"green",shape:"ring",text:"play message on " + data.ip});
+                                getSpeechUrl(data.message, data.language, data, (sres) => {
+                                        msg.payload.speechResult = sres;
+                                        this.status({fill:"green",shape:"dot",text:"ok"});
+                                        node.send(msg);
+                                    });
+                            }, data.delay); 
                             return;
                         }
-                        msg.payload.result = res;
+                        this.status({fill:"green",shape:"dot",text:"ok"});
                         node.send(msg);
                     });
                     return;
                 }
 
                 if (data.message && data.language) {
-                    this.status({fill:"green",shape:"ring",text:"play message"});
-                    getSpeechUrl(data.message, data.language, data, (resurl) => {
+                    this.status({fill:"green",shape:"ring",text:"play message " + data.ip});
+                    getSpeechUrl(data.message, data.language, data, (sres) => {
+                            msg.payload.speechResult = sres;
+                            this.status({fill:"green",shape:"dot",text:"ok"});
                             node.send(msg);
                         });
                     return;
