@@ -40,14 +40,16 @@ const doPlay = function(url, type, options, callback) {
         } else if(typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
             client.getVolume(function(err, newvol){
                 options.oldVolume = newvol.level * 100;
-                if (options.upperVolumeLimit !== 'undefined' && (newvol.level > (options.upperVolumeLimit / 100))) {
-                    newvol.level = options.upperVolumeLimit/100;
+                options.muted = (newvol.level < 0.01);
+
+                if (options.upperVolumeLimit !== 'undefined' && (options.oldVolume > options.upperVolumeLimit)) {
+                    newvol.level = options.upperVolumeLimit / 100;
                     client.setVolume(newvol, function(err, newvol){
                         if(err) console.log("there was an error setting the volume");
-                        console.log("volume changed to %s", Math.round(newvol.level * 100));
+                        console.log("volume changed to %s", Math.round(options.oldVolume));
                     });
-                } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < (options.lowerVolumeLimit / 100))) {
-                    newvol.level = options.lowerVolumeLimit/100;
+                } else if (typeof options.lowerVolumeLimit !== 'undefined' && (options.oldVolume < options.lowerVolumeLimit)) {
+                    newvol.level = options.lowerVolumeLimit / 100;
                     client.setVolume(newvol, function(err, newvol){
                         if(err) console.log("there was an error setting the volume");
                         console.log("volume changed to %s", Math.round(newvol.level * 100));
@@ -150,27 +152,30 @@ module.exports = function(RED) {
                 this.status({fill:"red",shape:"dot",text:"No IP given!"});
                 return;
             }
-            if (typeof data.language === 'undefined') {
+            if (typeof data.language === 'undefined' || data.language === '' ) {
                 data.language = 'en';
             }
             if (typeof data.volume !== 'undefined' && !isNaN(data.volume) && data.volume !== '') {
-                data.volume = parseInt(data.volume);
+                data.volume = parseInt(data.volume) / 100;
             } else {
                 delete data.volume;
             }
             if(typeof data.lowerVolumeLimit !== 'undefined' && !isNaN(data.lowerVolumeLimit) && data.lowerVolumeLimit !== '') {
-                data.lowerVolumeLimit = parseInt(data.lowerVolumeLimit);
+                data.lowerVolumeLimit = parseInt(data.lowerVolumeLimit) / 100;
             } else {
                 delete data.lowerVolumeLimit;
             }
             if(typeof data.upperVolumeLimit !== 'undefined' && !isNaN(data.upperVolumeLimit) && data.upperVolumeLimit !== '') {
-                data.upperVolumeLimit = parseInt(data.upperVolumeLimit);
+                data.upperVolumeLimit = parseInt(data.upperVolumeLimit) / 100;
             } else {
                 delete data.upperVolumeLimit;
             }
-            if (typeof data.delay === 'undefined' || isnan(data.delay) || (data.delay < 1000)) {
+            if (typeof data.delay !== 'undefined' && !isNaN(data.delay) && data.delay !== '') {
+                data.delay =  parseInt(data.delay);
+            } else {
                 data.delay = 250;
             }
+
             try {
                 msg.payload = data;
 
@@ -178,7 +183,7 @@ module.exports = function(RED) {
                     this.status({fill:"green",shape:"dot",text:"play from url (" + data.contentType + ") on " + data.ip});
                     doPlay(data.url, data.contentType, data, (res, data2) =>{
                         msg.payload.result = res;
-                        if (data2.message && data2.language) {
+                        if (data2.message) {
                             setTimeout((data3) => {
                                 this.status({fill:"green",shape:"ring",text:"play message on " + data3.ip});
                                 getSpeechUrl(data3.message, data3.language, data3, (sres, data) => {
@@ -195,7 +200,7 @@ module.exports = function(RED) {
                     return null;
                 }
 
-                if (data.message && data.language) {
+                if (data.message) {
                     this.status({fill:"green",shape:"ring",text:"play message on " + data.ip});
                     getSpeechUrl(data.message, data.language, data, (sres) => {
                             msg.payload.speechResult = sres;
