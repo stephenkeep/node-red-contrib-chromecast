@@ -78,7 +78,7 @@
         <dd> the port of the device (if not given default <code>8009</code> will be used). Could also be defined in the configuration of the node.</dd>
 
         <dt>url <span class="property-type">string</span></dt>
-        <dd> url to a media file which should be cast to the cast device. For a chromecast this chould be a media or a viideo file. For a Google Home device without a display this could only a audio file.</dd>
+        <dd> url to a media file which should be cast to the cast device. For a chromecast this should be a media or a video file. For a Google Home device without a display this could only be an audio file.</dd>
 
         <dt>contentType <span class="property-type">string</span></dt>
         <dd> the content type of the file in the url. This property is required if a url is given. Could also be defined in the configuration of the node.</dd>
@@ -87,10 +87,10 @@
         <dd> a text which should be send to the google tts engine to convert to a mp3 file.</dd>
 
         <dt class="optional">language <span class="property-type">string</span></dt>
-        <dd> the language which should be used for conveting the message to the media file.</dd>
+        <dd> the language which should be used for converting the message to the media file.</dd>
 
         <dt class="optional">volume <span class="property-type">number 0-100</span></dt>
-        <dd> the volume should be set.</dd>
+        <dd> will set the device volume to this level. (if left blank, the volume will be unchanged.)</dd>
 
         <dt class="optional">lowerVolumeLimit <span class="property-type">number 0-100</span></dt>
         <dd> will set the volume to this value, if the current volume is below this value.</dd>
@@ -99,7 +99,7 @@
         <dd> will set the volume to this value, if the current volume is above this limit.</dd>
 
         <dt class="optional">muted <span class="property-type">boolean</span></dt>
-        <dd> the volume shoule be muted if set to false, otherwise the volume will be unmuted.</dd>
+        <dd> the volume should be muted if set to false, otherwise the volume will be unmuted.</dd>
     
     </dl>
 
@@ -118,7 +118,7 @@
      <ol>
          <li>play a media file<br />
          For this the url and the content type needs to be specified. Thus can 
-         be done in the configuration or pass as a message property <code>msg.url</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.url</code> and <code>msg.payload.contentType</code><br /></li>
+         be done in the configuration or passed as a message property <code>msg.url</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.url</code> and <code>msg.payload.contentType</code><br /></li>
          <li>speak a given message, converted by google tts<br />
          For this the message needs to be specified. Thus can 
          be done in the configuration or pass as a message property <code>msg.message</code> or give a payload object with the property <code>msg.payload.message</code></li>
