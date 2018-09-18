@@ -17,7 +17,7 @@ const getSpeechUrl = function(text, language, options, callback) {
 
 const doPlay = function(url, type, options, callback) {
     var client = new Client();
-    
+
     const doConnect =  function() {
       client.launch(DefaultMediaReceiver, (err, player) => {
   
@@ -26,55 +26,53 @@ const doPlay = function(url, type, options, callback) {
           contentType: type,
           streamType: 'BUFFERED' // or LIVE
         };
-        if(typeof options.volume !== 'undefined') {
+        const doSetVolume = function(volume) {
             var obj = {};
-            if(options.volume > 0.0){
-                obj = { level: options.volume/100 };
-            } else {
+            if(volume < 0.01){
                 obj = { muted: true };
+            } else if(volume > 99.99){
+                obj = { level: 1 };
+            } else {
+                obj = { level: volume / 100 };
             }
-            client.setVolume(obj, function(err, newvol){
-                if(err) console.log("there was an error setting the volume");
-                console.log("volume changed to %s", Math.round(newvol.level * 100));
-            });
+            client.setVolume(volume, function(err, newvol){
+                if(err) node.error('there was an error setting the volume ' + err.message);
+                node.log("volume changed to %s", Math.round(volume.level * 100));
+            });        
+        }
+                
+        if(typeof options.volume !== 'undefined') {
+            doSetVolume(options.volume);
         } else if(typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
+            //eventually player.getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
             client.getVolume(function(err, newvol){
                 options.oldVolume = newvol.level * 100;
                 options.muted = (newvol.level < 0.01);
-
                 if (options.upperVolumeLimit !== 'undefined' && (options.oldVolume > options.upperVolumeLimit)) {
-                    newvol.level = options.upperVolumeLimit / 100;
-                    client.setVolume(newvol, function(err, newvol){
-                        if(err) console.log("there was an error setting the volume");
-                        console.log("volume changed to %s", Math.round(options.oldVolume));
-                    });
+                    doSetVolume(options.upperVolumeLimit);
                 } else if (typeof options.lowerVolumeLimit !== 'undefined' && (options.oldVolume < options.lowerVolumeLimit)) {
-                    newvol.level = options.lowerVolumeLimit / 100;
-                    client.setVolume(newvol, function(err, newvol){
-                        if(err) console.log("there was an error setting the volume");
-                        console.log("volume changed to %s", Math.round(newvol.level * 100));
-                    });
+                    doSetVolume(options.lowerVolumeLimit);
                 }
-
-                
             });
         }
 
         if (typeof options.muted !== 'undefined') {
-            client.setVolume({ muted: (options.muted === true) }, function(err, newvol){
-                if(err) console.log("there was an error setting the volume");
-                console.log("volume changed to %s", Math.round(newvol.level * 100));
-            });
+            doSetVolume({ muted: (options.muted === true) });
         }
 
-        player.load(media, { autoplay: true }, (err, status) => {
-          client.close();
-          if (err) {
-            node.error('Error:' + err.message);
-            node.status({fill:"red",shape:"dot",text:"error"});              
-          }
-          callback(status, options);
-        });
+        try {
+            player.load(media, { autoplay: true }, (err, status) => {
+                client.close();
+                if (err) {
+                    node.error('Error:' + err.message);
+                    node.status({fill:"red",shape:"dot",text:"error"});              
+                }
+                callback(status, options);
+            });
+        } catch (err) {
+            node.error('Exception occured on playing oputput! ' + err.message);
+            node.status({fill:"red",shape:"dot",text:"error"});
+        }        
       });
     };
 
