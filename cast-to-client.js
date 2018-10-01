@@ -30,12 +30,12 @@ const doPlay = function(url, type, options, callback) {
             var obj = {};
             if(volume < 0.01){
                 obj = { muted: true };
-            } else if(volume > 99.99){
+            } else if(volume > 0.99){
                 obj = { level: 1 };
             } else {
-                obj = { level: volume / 100 };
+                obj = { level: volume };
             }
-            client.setVolume(volume, function(err, newvol){
+            client.setVolume(obj, function(err, newvol){
                 if(err) node.error('there was an error setting the volume ' + err.message);
                 node.log("volume changed to %s", Math.round(volume.level * 100));
             });        
@@ -48,9 +48,9 @@ const doPlay = function(url, type, options, callback) {
             client.getVolume(function(err, newvol){
                 options.oldVolume = newvol.level * 100;
                 options.muted = (newvol.level < 0.01);
-                if (options.upperVolumeLimit !== 'undefined' && (options.oldVolume > options.upperVolumeLimit)) {
+                if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
                     doSetVolume(options.upperVolumeLimit);
-                } else if (typeof options.lowerVolumeLimit !== 'undefined' && (options.oldVolume < options.lowerVolumeLimit)) {
+                } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < options.lowerVolumeLimit)) {
                     doSetVolume(options.lowerVolumeLimit);
                 }
             });
@@ -69,8 +69,8 @@ const doPlay = function(url, type, options, callback) {
                 }
                 callback(status, options);
             });
-        } catch (err) {
-            node.error('Exception occured on playing oputput! ' + err.message);
+        } catch (errm) {
+            node.error('Exception occured on playing oputput! ' + errm.message);
             node.status({fill:"red",shape:"dot",text:"error"});
         }        
       });
