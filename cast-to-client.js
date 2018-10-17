@@ -1,6 +1,7 @@
 /********************************************
 * cast-to-client:
 *********************************************/
+var node;
 const Client                = require('castv2-client').Client;
 const DefaultMediaReceiver  = require('castv2-client').DefaultMediaReceiver;
 const googletts             = require('google-tts-api');
@@ -36,9 +37,26 @@ const doPlay = function(url, type, options, callback) {
                 obj = { level: volume };
             }
             client.setVolume(obj, function(err, newvol){
-                if(err) node.error('there was an error setting the volume ' + err.message);
-                node.log("volume changed to %s", Math.round(volume.level * 100));
-            });        
+                if (node) {
+                    if(err) {
+                        if(err.message) {
+                            node.error('Not able to set the volume! Error:' + err.message);
+                        } else {
+                            node.error('Not able to set the volume! (unknown error message!)');
+                        }
+                    } 
+                    node.log("volume changed to %s", Math.round(volume.level * 100));
+                } else if (console) {
+                    if(err) {
+                        if(err.message) {
+                            console.error('Not able to set the volume! Error:' + err.message);
+                        } else {
+                            console.error('Not able to set the volume! (unknown error message!)');
+                        }
+                    }
+                    console.log("volume changed to " + String(Math.round(volume.level * 100)));
+                }
+            });
         }
                 
         if(typeof options.volume !== 'undefined') {
@@ -64,14 +82,38 @@ const doPlay = function(url, type, options, callback) {
             player.load(media, { autoplay: true }, (err, status) => {
                 client.close();
                 if (err) {
-                    node.error('Error:' + err.message);
-                    node.status({fill:"red",shape:"dot",text:"error"});              
+                    if (node) {
+                        if (err.message) {
+                            node.error('Was not able to load media. Error:' + err.message);
+                        } else {
+                            node.error('Was not able to load media. (unknown error message!)');
+                        }
+                        node.status({fill:"red",shape:"dot",text:"error"});
+                    } else if (console) {
+                        if (err.message) {
+                            console.error('Was not able to load media. Error:' + err.message);
+                        } else {
+                            console.error('Was not able to load media. (unknown error message)');
+                        }
+                    }
                 }
                 callback(status, options);
             });
         } catch (errm) {
-            node.error('Exception occured on playing oputput! ' + errm.message);
-            node.status({fill:"red",shape:"dot",text:"error"});
+            if (node) {
+                if (errm.message) {
+                    node.error('Exception occured on playing oputput! Error:' + errm.message);
+                } else {
+                    node.error('Exception occured on playing oputput! (unknown error message)');
+                }
+                node.status({fill:"red",shape:"dot",text:"error"});
+            } else if (console) {
+                if (err.message) {
+                    console.error('Exception occured on playing oputput! Error:' + errm.message);
+                } else {
+                    console.error('Exception occured on playing oputput! (unknown error message)');
+                }
+            }
         }        
       });
     };
@@ -83,17 +125,29 @@ const doPlay = function(url, type, options, callback) {
     }
 
     client.on('error', (err) => {
-      node.error('Error:' + err.message);
-      node.status({fill:"red",shape:"dot",text:"error"});        
-      client.close();
-      callback('error');
+        if (node) {
+            if (err.message) {
+                node.error('Error reported by client:' + err.message);
+            } else {
+                node.error('Error reported by client, but no error message given!');
+            }
+                node.status({fill:"red",shape:"dot",text:"error"});
+        } else if (console) {
+            if (err.message) {
+                console.error('Error reported by client:' + err.message);
+            } else {
+                console.error('Error reported by client, but no error message given!');
+            }
+        }
+        client.close();
+        callback('error');
     });
   };
 
 module.exports = function(RED) {
     function CastNode(config) {
         RED.nodes.createNode(this,config);
-        var node = this;
+        node = this;
         
         this.on('input', function (msg) {
             //-----------------------------------------
@@ -187,13 +241,13 @@ module.exports = function(RED) {
                                 getSpeechUrl(data3.message, data3.language, data3, (sres, data) => {
                                         msg.payload.speechResult = sres;
                                         this.status({fill:"green",shape:"dot",text:"ok"});
-                                        node.send(msg);
+                                        this.send(msg);
                                     });
                             }, data2.delay, data2); 
                             return null;
                         }
                         this.status({fill:"green",shape:"dot",text:"ok"});
-                        node.send(msg);
+                        this.send(msg);
                     });
                     return null;
                 }
@@ -203,7 +257,7 @@ module.exports = function(RED) {
                     getSpeechUrl(data.message, data.language, data, (sres) => {
                             msg.payload.speechResult = sres;
                             this.status({fill:"green",shape:"dot",text:"ok"});
-                            node.send(msg);
+                            this.send(msg);
                         });
                         return null;
                 }
