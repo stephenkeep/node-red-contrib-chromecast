@@ -49,10 +49,10 @@ Options for the incomming message object:
   - **Language**, `msg.language` or `msg.payload.language` the language which should be used for conveting the message to the media file.
   - **Volume**, `msg.volume` or `msg.payload.volume` the volume should be set.
 
-- Additioal options not configurable:
+- Additional options not configurable:
     - `msg.lowerVolumeLimit` or `msg.payload.lowerVolumeLimit` will set the volume to this value, if the current volume is below this value.
     - `msg.upperVolumeLimit` or `msg.payload.upperVolumeLimit` will set the volume to this value, if the current volume is above this limit.
-    - `msg.muted` or `msg.payload.muted` the volume shoule be muted if set to false, otherwise the volume will be unmuted.
+    - `msg.muted` or `msg.payload.muted` the volume will be muted if set to false, otherwise the volume will be unmuted.
    
 
 So the config can be at 3 places. The config of the node, a property of the `msg.payload` or a property of the `msg` object. The information is loaded in that order (e.g. url):

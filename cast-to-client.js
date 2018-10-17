@@ -8,7 +8,12 @@ const googletts             = require('google-tts-api');
 const getSpeechUrl = function(node, text, language, options, callback) {
     googletts(text, language, 1).then( (url) => {
         if (node) { node.debug("returned tts media url='" + url + "'"); }
-        doPlay(node, url, 'audio/mp3', options, (res, data) =>{
+        let media = {
+            contentId: url,
+            contentType: 'audio/mp3',
+            streamType: 'BUFFERED' // or LIVE
+          };
+        doPlay(node, media, options, (res, data) =>{
             callback(url, data);
         });        
     }).catch( (err) => {
@@ -26,17 +31,12 @@ const getSpeechUrl = function(node, text, language, options, callback) {
     });
   };
 
-const doPlay = function(node, url, type, options, callback) {
+const doPlay = function(node, media, options, callback) {
     var client = new Client();
 
     const doConnect =  function() {
       client.launch(DefaultMediaReceiver, (err, player) => {
-  
-        var media = {
-          contentId: url,
-          contentType: type,
-          streamType: 'BUFFERED' // or LIVE
-        };
+
         const doSetVolume = function(volume) {
             var obj = {};
             if(volume < 0.01){
@@ -62,44 +62,81 @@ const doPlay = function(node, url, type, options, callback) {
                 }
             });
         }
-                
-        if(typeof options.volume !== 'undefined') {
-            doSetVolume(options.volume);
-        } else if(typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
-            //eventually player.getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
-            client.getVolume(function(err, newvol){
-                if (node) { node.debug("volume get from client " + JSON.stringify(newvol)); }
-                options.oldVolume = newvol.level * 100;
-                options.muted = (newvol.level < 0.01);
-                if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
-                    doSetVolume(options.upperVolumeLimit);
-                } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < options.lowerVolumeLimit)) {
-                    doSetVolume(options.lowerVolumeLimit);
-                }
-            });
-        }
-
-        if (typeof options.muted !== 'undefined') {
-            doSetVolume({ muted: (options.muted === true) });
-        }
-
         try {
-            if (node) { node.debug("loading player with media='" + media + "'"); }
-            player.load(media, { autoplay: true }, (err, status) => {
-                client.close();
-                if (err) {
-                    var msg = 'Not able to load media';
-                    if (err.message) { msg += ':' + err.message; } else { msg += '! (unknown error message!)'; }
-                    
-                    if (node) {
-                        node.error(msg);
-                        node.debug(JSON.stringify(err, Object.getOwnPropertyNames(err)));
-                        if(err.stack) { node.error(err.stack); }
-                        node.status({fill:"red",shape:"ring",text:"error load media"});
+
+            if(typeof options.volume !== 'undefined') {
+                doSetVolume(options.volume);
+            } else if(typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
+                //eventually player.getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
+                client.getVolume(function(err, newvol){
+                    if (node) { node.debug("volume get from client " + JSON.stringify(newvol)); }
+                    options.oldVolume = newvol.level * 100;
+                    options.muted = (newvol.level < 0.01);
+                    if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
+                        doSetVolume(options.upperVolumeLimit);
+                    } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < options.lowerVolumeLimit)) {
+                        doSetVolume(options.lowerVolumeLimit);
                     }
-                }
-                callback(status, options);
-            });
+                });
+            }
+
+            if (typeof options.muted !== 'undefined') {
+                doSetVolume({ muted: (options.muted === true) });
+            }
+
+            
+            if (typeof options.pause !== 'undefined' && options.pause === true) {
+                if (node) { node.debug("sending pause signal to player"); }
+                client.getSessions(function(err, sessions) {
+                    const session = sessions[0];
+                        client.join(session, DefaultMediaReceiver, function(err, app) {
+                            if (!app.media.currentSession){
+                                app.getStatus(function() {
+                                    app.pause();
+                                });
+                            } else {
+                                app.pause();
+                            }
+                        });
+                    });
+            }
+
+            if (typeof options.stop !== 'undefined' && options.stop === true) {
+                if (node) { node.debug("sending pause signal to player"); }
+                client.getSessions(function(err, sessions) {
+                    const session = sessions[0];
+                        client.join(session, DefaultMediaReceiver, function(err, app) {
+                            if (!app.media.currentSession){
+                                app.getStatus(function() {
+                                    app.stop();
+                                });
+                            } else {
+                                app.stop();
+                            }
+                        });
+                    });
+            }
+
+            if (typeof media === 'object' &&
+                typeof media.contentId !== 'undefined' &&
+                typeof media.contentType !== 'undefined') {
+                if (node) { node.debug("loading player with media='" + JSON.stringify(media) + "'"); }
+                player.load(options.media, { autoplay: true }, (err, status) => {
+                    client.close();
+                    if (err) {
+                        var msg = 'Not able to load media';
+                        if (err.message) { msg += ':' + err.message; } else { msg += '! (unknown error message!)'; }
+                        
+                        if (node) {
+                            node.error(msg);
+                            node.debug(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+                            if(err.stack) { node.error(err.stack); }
+                            node.status({fill:"red",shape:"ring",text:"error load media"});
+                        }
+                    }
+                    callback(status, options);
+                });
+            }
         } catch (errm) {
             if (errm) {
                 var msg = 'Exception occured on load media';
@@ -167,7 +204,7 @@ module.exports = function(RED) {
             * versenden:
             *********************************************/
             //var creds = RED.nodes.getNode(config.creds); - not used
-            let attrs = ['url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay'];
+            let attrs = ['url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause'];
 
             var data = {};
             for (var attr of attrs) {
@@ -222,15 +259,25 @@ module.exports = function(RED) {
                 data.delay = 250;
             }
 
+            if (typeof data.contentType !== 'undefined' && typeof data.url !== 'undefined') {
+                this.debug("initialize playing url='" + data.url + "' of contentType='" + data.contentType + "'");
+                data.media = {
+                    contentId: data.url,
+                    contentType: data.contentType || 'audio/mp3',
+                    streamType: 'BUFFERED' // or LIVE
+                  };
+            }
+
             try {
                 msg.payload = data;
                 this.debug('start playing on cast device');
                 this.debug(JSON.stringify(data));
 
-                if (data.contentType && data.url) {
-                    this.debug("initialize playing url='" + data.url + "' on ip='" + data.ip + "' of contentType='" + data.contentType + "'");
+                if (data.media) {
+                    this.debug("initialize playing on ip='" + data.ip + "'");
                     this.status({fill:"green",shape:"dot",text:"play (" + data.contentType + ") on " + data.ip + " [url]"});
-                    doPlay(this, data.url, data.contentType, data, (res, data2) =>{
+
+                    doPlay(this, data.media, data, (res, data2) =>{
                         msg.payload.result = res;
                         if (data2 && data2.message) {
                             setTimeout((data3) => {
@@ -258,6 +305,18 @@ module.exports = function(RED) {
                             this.send(msg);
                         });
                         return null;
+                }
+
+                if (data.stop || data.pause || data.volume) {
+                    this.debug("only sending requestz to ip='" + data.ip + "'");
+                    this.status({fill:"yellow",shape:"dot",text:"setting status on " + data.ip});
+
+                    doPlay(this, null, data, (res, data2) =>{
+                        msg.payload.result = res;
+                        this.status({fill:"green",shape:"dot",text:"ok"});
+                        this.send(msg);
+                    });
+                    return null;
                 }
             } catch (err) {
                 this.error('Exception occured on playing cromecast oputput! ' + err.message);
