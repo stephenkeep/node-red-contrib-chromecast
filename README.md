@@ -3,9 +3,11 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/hypnos3/node-red-contrib-cast/graphs/commit-activity)
 [![GitHub version](https://badge.fury.io/gh/Hypnos3%2Fnode-red-contrib-cast.svg)](https://github.com/hypnos3/node-red-contrib-cast)
 [![NPM version](https://badge.fury.io/js/node-red-contrib-cast.svg)](http://badge.fury.io/js/node-red-contrib-cast)
+[![HitCount](http://hits.dwyl.io/hypnos3/node-red-contrib-cast.svg)](http://hits.dwyl.io/hypnos3/node-red-contrib-cast)
 [![Dependencies Status](https://david-dm.org/hypnos3/node-red-contrib-cast/status.svg)](https://david-dm.org/hypnos3/node-red-contrib-cast)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![Issues](https://img.shields.io/github/issues/hypnos3/node-red-contrib-cast.svg?style=flat-square)](https://github.com/hypnos3/node-red-contrib-cast/issues)
 
 These nodes are based on a fork of the node-red-contrib-chromecast. It is for play media on a chromecast or a google home device.
 
