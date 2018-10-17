@@ -1,22 +1,32 @@
 /********************************************
 * cast-to-client:
 *********************************************/
-var node;
 const Client                = require('castv2-client').Client;
 const DefaultMediaReceiver  = require('castv2-client').DefaultMediaReceiver;
 const googletts             = require('google-tts-api');
 
-const getSpeechUrl = function(text, language, options, callback) {
+const getSpeechUrl = function(node, text, language, options, callback) {
     googletts(text, language, 1).then( (url) => {
-        doPlay(url, 'audio/mp3', options, (res, data) =>{
+        if (node) { node.debug("returned tts media url='" + url + "'"); }
+        doPlay(node, url, 'audio/mp3', options, (res, data) =>{
             callback(url, data);
         });        
     }).catch( (err) => {
-      console.error(err.stack);
+        if (err) {
+            var msg = 'Not able to get media file via google-tts';
+            if (err.message) { msg += ':' + err.message; } else { msg += '! (unknown error message!)'; }
+            
+            if (node) {
+                node.error(msg);
+                node.debug(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+                if(err.stack) { node.error(err.stack); }
+                node.status({fill:"red",shape:"ring",text:"error in tts"});
+            }
+        }
     });
   };
 
-const doPlay = function(url, type, options, callback) {
+const doPlay = function(node, url, type, options, callback) {
     var client = new Client();
 
     const doConnect =  function() {
@@ -36,25 +46,19 @@ const doPlay = function(url, type, options, callback) {
             } else {
                 obj = { level: volume };
             }
+            if (node) { node.debug("try to set volume " + JSON.stringify(obj)); }
             client.setVolume(obj, function(err, newvol){
-                if (node) {
-                    if(err) {
-                        if(err.message) {
-                            node.error('Not able to set the volume! Error:' + err.message);
-                        } else {
-                            node.error('Not able to set the volume! (unknown error message!)');
-                        }
-                    } 
-                    node.log("volume changed to %s", Math.round(volume.level * 100));
-                } else if (console) {
-                    if(err) {
-                        if(err.message) {
-                            console.error('Not able to set the volume! Error:' + err.message);
-                        } else {
-                            console.error('Not able to set the volume! (unknown error message!)');
-                        }
+                if(err) {
+                    var msg = 'Not able to set the volume';
+                    if (err.message) { msg += ':' + err.message; } else { msg += '! (unknown error message!)'; }
+                    
+                    if (node) {
+                        node.error(msg);
+                        node.debug(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+                        if(err.stack) { node.error(err.stack); }
                     }
-                    console.log("volume changed to " + String(Math.round(volume.level * 100)));
+                } else if (node) {
+                    node.log("volume changed to %s", Math.round(volume.level * 100));
                 }
             });
         }
@@ -64,6 +68,7 @@ const doPlay = function(url, type, options, callback) {
         } else if(typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
             //eventually player.getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
             client.getVolume(function(err, newvol){
+                if (node) { node.debug("volume get from client " + JSON.stringify(newvol)); }
                 options.oldVolume = newvol.level * 100;
                 options.muted = (newvol.level < 0.01);
                 if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
@@ -79,39 +84,32 @@ const doPlay = function(url, type, options, callback) {
         }
 
         try {
+            if (node) { node.debug("loading player with media='" + media + "'"); }
             player.load(media, { autoplay: true }, (err, status) => {
                 client.close();
                 if (err) {
+                    var msg = 'Not able to load media';
+                    if (err.message) { msg += ':' + err.message; } else { msg += '! (unknown error message!)'; }
+                    
                     if (node) {
-                        if (err.message) {
-                            node.error('Was not able to load media. Error:' + err.message);
-                        } else {
-                            node.error('Was not able to load media. (unknown error message!)');
-                        }
-                        node.status({fill:"red",shape:"dot",text:"error"});
-                    } else if (console) {
-                        if (err.message) {
-                            console.error('Was not able to load media. Error:' + err.message);
-                        } else {
-                            console.error('Was not able to load media. (unknown error message)');
-                        }
+                        node.error(msg);
+                        node.debug(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+                        if(err.stack) { node.error(err.stack); }
+                        node.status({fill:"red",shape:"ring",text:"error load media"});
                     }
                 }
                 callback(status, options);
             });
         } catch (errm) {
-            if (node) {
-                if (errm.message) {
-                    node.error('Exception occured on playing oputput! Error:' + errm.message);
-                } else {
-                    node.error('Exception occured on playing oputput! (unknown error message)');
-                }
-                node.status({fill:"red",shape:"dot",text:"error"});
-            } else if (console) {
-                if (err.message) {
-                    console.error('Exception occured on playing oputput! Error:' + errm.message);
-                } else {
-                    console.error('Exception occured on playing oputput! (unknown error message)');
+            if (errm) {
+                var msg = 'Exception occured on load media';
+                if (errm.message) { msg += ':' + errm.message; } else { msg += '! (unknown error message!)'; }
+                
+                if (node) {
+                    node.error(msg);
+                    node.debug(JSON.stringify(errm, Object.getOwnPropertyNames(errm)));
+                    if(errm.stack) { node.error(errm.stack); }
+                    node.status({fill:"red",shape:"ring",text:"exception load media"});
                 }
             }
         }        
@@ -119,35 +117,31 @@ const doPlay = function(url, type, options, callback) {
     };
 
     if (typeof options.port === 'undefined') {
+        if (node) { node.debug("connect to client ip='" + options.ip + "'"); }
         client.connect(options.ip, doConnect);
     } else {
+        if (node) { node.debug("connect to client ip='" + options.ip + "' port='" + options.port + "'"); }
         client.connect(options.ip, options.port,doConnect);
     }
 
     client.on('error', (err) => {
-        if (node) {
-            if (err.message) {
-                node.error('Error reported by client:' + err.message);
-            } else {
-                node.error('Error reported by client, but no error message given!');
-            }
-                node.status({fill:"red",shape:"dot",text:"error"});
-        } else if (console) {
-            if (err.message) {
-                console.error('Error reported by client:' + err.message);
-            } else {
-                console.error('Error reported by client, but no error message given!');
-            }
-        }
         client.close();
-        callback('error');
+        var msg = 'Client error reported';
+        if (err.message) { msg += ':' + err.message; } else { msg += ', but no error message given! (unknown error message!)'; }
+        
+        if (node) {
+            node.error(msg);
+            node.debug(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+            node.status({fill:"red",shape:"ring",text:"client error"});
+        }
+        //callback('error', options);
     });
   };
 
 module.exports = function(RED) {
     function CastNode(config) {
         RED.nodes.createNode(this,config);
-        node = this;
+        //var node = this;
         
         this.on('input', function (msg) {
             //-----------------------------------------
@@ -174,7 +168,7 @@ module.exports = function(RED) {
             *********************************************/
             //var creds = RED.nodes.getNode(config.creds); - not used
             let attrs = ['url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay'];
-            
+
             var data = {};
             for (var attr of attrs) {
                 if (config[attr]) {
@@ -230,12 +224,15 @@ module.exports = function(RED) {
 
             try {
                 msg.payload = data;
+                this.debug('start playing on cast device');
+                this.debug(JSON.stringify(data));
 
                 if (data.contentType && data.url) {
-                    this.status({fill:"green",shape:"dot",text:"play from url (" + data.contentType + ") on " + data.ip});
-                    doPlay(data.url, data.contentType, data, (res, data2) =>{
+                    this.debug("initialize playing url='" + data.url + "' on ip='" + data.ip + "' of contentType='" + data.contentType + "'");
+                    this.status({fill:"green",shape:"dot",text:"play (" + data.contentType + ") on " + data.ip + " [url]"});
+                    doPlay(this, data.url, data.contentType, data, (res, data2) =>{
                         msg.payload.result = res;
-                        if (data2.message) {
+                        if (data2 && data2.message) {
                             setTimeout((data3) => {
                                 this.status({fill:"green",shape:"ring",text:"play message on " + data3.ip});
                                 getSpeechUrl(data3.message, data3.language, data3, (sres, data) => {
@@ -253,8 +250,9 @@ module.exports = function(RED) {
                 }
 
                 if (data.message) {
+                    this.debug("initialize getting tts message='" + data.message + "' of language='" + data.language + "'");
                     this.status({fill:"green",shape:"ring",text:"play message on " + data.ip});
-                    getSpeechUrl(data.message, data.language, data, (sres) => {
+                    getSpeechUrl(this, data.message, data.language, data, (sres) => {
                             msg.payload.speechResult = sres;
                             this.status({fill:"green",shape:"dot",text:"ok"});
                             this.send(msg);
@@ -264,8 +262,10 @@ module.exports = function(RED) {
             } catch (err) {
                 this.error('Exception occured on playing cromecast oputput! ' + err.message);
                 this.status({fill:"red",shape:"dot",text:"error"});
+                return null;
             }
-            this.error('Can not play on cast device!');
+            this.error("Input paameter wrong or missing. You need to setup (or give in the input message) the 'url' and 'content type' or the 'message' and 'language'!!");
+            this.status({fill:"red",shape:"dot",text:"error - input parameter"});
             return null;
         });
     }
