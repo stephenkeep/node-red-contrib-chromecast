@@ -108,13 +108,13 @@
          <li>Standard output
              <dl class="message-properties">
                  <dt>payload <span class="property-type">string</span></dt>
-                 <dd>the given result by the cast2-client library.</dd>
+                 <dd>the given status result by the cast2-client library.</dd>
              </dl>
          </li>
      </ol>
 
      <h3>Details</h3>
-     <p>there are 2 different use cases:</p>
+     <p>there are 3 different use cases:</p>
      <ol>
          <li>play a media file<br />
          For this the url and the content type needs to be specified. Thus can 
@@ -122,7 +122,9 @@
          <li>speak a given message, converted by google tts<br />
          For this the message needs to be specified. Thus can 
          be done in the configuration or pass as a message property <code>msg.message</code> or give a payload object with the property <code>msg.payload.message</code></li>
-     </ol>
+         <li>get the state of the cast device<br />
+            For this no url or message has to be specified.</li>
+        </ol>
      <p>If there is a combination of both, first the media file given by URL will
      be streamed and then the message media file.</p>
      <p>If the payload is a string and no contentType is defined, the payload 
