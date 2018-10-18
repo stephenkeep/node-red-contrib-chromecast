@@ -5,7 +5,7 @@
             <input type="text" id="node-input-creds">
         </div>
     -->
-    
+
     <!-- By convention, most nodes have a 'name' property. The following div -->
     <!-- provides the necessary field. Should always be the last option      -->
     <div class="form-row">
@@ -26,7 +26,7 @@
         <label for="node-input-url"><i class="fa fa-file-audio-o"></i> Media Url</label>
         <input type="text" id="node-input-url" placeholder="(optional) Media Url">
     </div>
-    
+
     <div class="form-row">
         <label for="node-input-contentType"><i class="fa fa-file-o"></i> Media Type</label>
         <input type="text" id="node-input-contentType" placeholder="audio/mp3">
@@ -63,7 +63,7 @@
 <script type="text/x-red" data-help-name="cast-to-client">
     <h3>About</h3>
     <p>Plays a Media file on a chromecast or a Home device</p>
-    
+
     <h3>Inputs</h3>
     <dl class="message-properties">
         <dt>payload
@@ -100,7 +100,7 @@
 
         <dt class="optional">muted <span class="property-type">boolean</span></dt>
         <dd> the volume should be muted if set to false, otherwise the volume will be unmuted.</dd>
-    
+
     </dl>
 
  <h3>Outputs</h3>
@@ -117,24 +117,24 @@
      <p>there are 3 different use cases:</p>
      <ol>
          <li>play a media file<br />
-         For this the url and the content type needs to be specified. Thus can 
+         For this the url and the content type needs to be specified. Thus can
          be done in the configuration or passed as a message property <code>msg.url</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.url</code> and <code>msg.payload.contentType</code><br /></li>
          <li>speak a given message, converted by google tts<br />
-         For this the message needs to be specified. Thus can 
+         For this the message needs to be specified. Thus can
          be done in the configuration or pass as a message property <code>msg.message</code> or give a payload object with the property <code>msg.payload.message</code></li>
          <li>get the state of the cast device<br />
             For this no url or message has to be specified.</li>
         </ol>
      <p>If there is a combination of both, first the media file given by URL will
      be streamed and then the message media file.</p>
-     <p>If the payload is a string and no contentType is defined, the payload 
+     <p>If the payload is a string and no contentType is defined, the payload
      will be used as a message which should be spoken.</p>
 
      <h3>References</h3>
     <ul>
 		<li><a href="https://github.com/Hypnos3/node-red-contrib-cast">GitHub</a> - the nodes github repository</li>
     </ul>
-     
+
 
 </script>
 
@@ -163,7 +163,7 @@
             language: {
                 value:"en",
                 required: false
-            },            
+            },
             ip: {
                 value:"",
                 required: false,
@@ -190,7 +190,7 @@
         inputs:1,               // set the number of inputs - only 0 or 1
         outputs:1,              // set the number of outputs - 0 to n
         icon: "castclihn.png",     // saved in  icons/myicon.png - bridge.png
-        color: "#FFFF00", 
+        color: "#FFFF00",
         label: function() {
             return this.name || "Cast";
         },

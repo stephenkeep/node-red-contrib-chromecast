@@ -30,7 +30,7 @@ const getSpeechUrl = function(node, text, language, options, callback) {
           };
         doCast(node, media, options, (res, data) =>{
             callback(url, data);
-        });        
+        });
     }).catch( (err) => {
         errorHandler(node,err,'Not able to get media file via google-tts',"error in tts");
     });
@@ -103,7 +103,7 @@ const doCast = function(node, media, options, callbackResult) {
                             }
                         });
                     }
-                });                
+                });
             }
 
             if (typeof options.stop !== 'undefined' && options.stop === true) {
@@ -158,19 +158,19 @@ const doCast = function(node, media, options, callbackResult) {
                     }
                 });
             }
-        } catch (errm) {
-            errorHandler(node,errm,'Exception occured on load media','exception load media');
-        }        
+        } catch (err) {
+            errorHandler(node,err,'Exception occured on load media','exception load media');
+        }
       });
     };
 
     client.on('error', (err) => {
         client.close();
-        errorHandler(node,errm,'Client error reported','client error');
+        errorHandler(node,err,'Client error reported','client error');
     });
 
     client.on('status', (status) => {
-        if (node) { 
+        if (node) {
             node.send([null,{
                 payload : status,
                 type : 'status',
@@ -192,7 +192,7 @@ module.exports = function(RED) {
     function CastNode(config) {
         RED.nodes.createNode(this,config);
         //var node = this;
-        
+
         this.on('input', function (msg) {
             //-----------------------------------------
             //Error Handling
@@ -201,13 +201,13 @@ module.exports = function(RED) {
                 this.status({fill:"red",shape:"dot",text:"installation error"});
                 return;
             }
-            
+
             if (!DefaultMediaReceiver) {
                 this.error('DefaultMediaReceiver not defined!! - Installation Problem, Please reinstall!');
                 this.status({fill:"red",shape:"dot",text:"installation error"});
                 return;
             }
-            
+
             if (!googletts) {
                 this.error('googletts not defined!! - Installation Problem, Please reinstall!');
                 this.status({fill:"red",shape:"dot",text:"installation error"});
@@ -300,7 +300,7 @@ module.exports = function(RED) {
                                         this.status({fill:"green",shape:"dot",text:"ok"});
                                         this.send(msg);
                                     });
-                            }, data2.delay, data2); 
+                            }, data2.delay, data2);
                             return null;
                         }
                         this.status({fill:"green",shape:"dot",text:"ok"});
