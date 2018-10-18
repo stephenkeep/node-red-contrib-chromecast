@@ -14,7 +14,7 @@ const errorHandler = function(node, err, messageText, stateText) {
     if (node) {
         node.error(messageText);
         node.debug(JSON.stringify(err, Object.getOwnPropertyNames(err)));
-        if(stateText && err.stack) { node.error('Error stack: ' + err.stack); }
+        if(stateText && err.stack) { node.debug('Error stack: ' + err.stack); }
         node.status({fill:"red",shape:"ring",text:stateText});
     }
     return false;
