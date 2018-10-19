@@ -9,13 +9,38 @@ const errorHandler = function(node, err, messageText, stateText) {
     if (!err) {
         return true;
     }
-    if (err.message) { messageText += ':' + err.message; } else { messageText += '! (No error message given!)'; }
+    if (err.message) {
+        let msg = err.message.toLowerCase();
+        if (msg.indexOf('invalid player state')>=0) {
+            //Sent when the request by the sender can not be fulfilled because the player is not in a valid state. For example, if the application has not created a media element yet.
+            //https://developers.google.com/cast/docs/reference/messages#InvalidPlayerState
+            messageText += ':' + err.message + ' The request can not be fulfilled because the player is not in a valid state.';
+        } else if (msg.indexOf('load failed')>=0) {
+            //Sent when the load request failed. The player state will be IDLE.
+            //https://developers.google.com/cast/docs/reference/messages#LoadFailed
+            messageText += ':' + err.message + ' Not able to load the media.';
+        } else if (msg.indexOf('load cancelled')>=0) {
+            //Sent when the load request was cancelled (a second load request was received).
+            //https://developers.google.com/cast/docs/reference/messages#LoadCancelled
+            messageText += ':' + err.message + ' The request was cancelled (a second load request was received).';
+        } else if (msg.indexOf('invalid request')>=0) {
+            //Sent when the request is invalid (an unknown request type, for example).
+            //https://developers.google.com/cast/docs/reference/messages#InvalidRequest
+            messageText += ':' + err.message + ' The request is invalid (example: an unknown request type).';
+        } else {
+            messageText += ':' + err.message;
+        }
+    } else {
+        messageText += '! (No error message given!)';
+    }
 
     if (node) {
         node.error(messageText);
         node.debug(JSON.stringify(err, Object.getOwnPropertyNames(err)));
-        if(stateText && err.stack) { node.debug('Error stack: ' + err.stack); }
         node.status({fill:"red",shape:"ring",text:stateText});
+    } else if (console) {
+        console.error(messageText);
+        console.error(JSON.stringify(err, Object.getOwnPropertyNames(err)));
     }
     return false;
 }
@@ -126,10 +151,12 @@ const doCast = function(node, media, options, callbackResult) {
             }
 
             if (typeof media === 'object' &&
-                typeof media.contentId !== 'undefined' &&
-                typeof media.contentType !== 'undefined') {
+                typeof media.contentId !== 'undefined') {
+                if (!media.contentType) { media.contentType = 'audio/mp3'; }
+                if (!media.streamType) { media.contentType = 'BUFFERED'; }
+
                 if (node) { node.debug("loading player with media='" + JSON.stringify(media) + "'"); }
-                player.load(options.media, { autoplay: true }, (err, status) => {
+                player.load(media, { autoplay: true }, (err, status) => {
                     if (err) {
                         errorHandler(node,err,'Not able to load media','error load media');
                     } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
@@ -217,7 +244,7 @@ module.exports = function(RED) {
             * versenden:
             *********************************************/
             //var creds = RED.nodes.getNode(config.creds); - not used
-            let attrs = ['url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek'];
+            let attrs = ['media', 'url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration'];
 
             var data = {};
             for (var attr of attrs) {
@@ -236,13 +263,13 @@ module.exports = function(RED) {
                     }
                 }
             } else if (typeof msg.payload === 'string' && msg.payload.trim() !== "") {
-                if (data.contentType && !msg.url && !config.url) {
+                if (data.contentType && !msg.url && !config.url && !data.media) {
                     data.url = msg.payload;
                 } else {
                     data.message = msg.payload;
                 }
             }
-            //----------------------------------
+            //-------------------------------------------------------------------
             if (typeof data.ip === 'undefined') {
                 this.error("configuraton error: IP is missing!");
                 this.status({fill:"red",shape:"dot",text:"No IP given!"});
@@ -251,17 +278,23 @@ module.exports = function(RED) {
             if (typeof data.language === 'undefined' || data.language === '' ) {
                 data.language = 'en';
             }
-            if (typeof data.volume !== 'undefined' && !isNaN(data.volume) && data.volume !== '') {
+            if (typeof data.volume !== 'undefined' &&
+                !isNaN(data.volume) &&
+                data.volume !== '') {
                 data.volume = parseInt(data.volume) / 100;
             } else {
                 delete data.volume;
             }
-            if(typeof data.lowerVolumeLimit !== 'undefined' && !isNaN(data.lowerVolumeLimit) && data.lowerVolumeLimit !== '') {
+            if(typeof data.lowerVolumeLimit !== 'undefined' &&
+                !isNaN(data.lowerVolumeLimit) &&
+                data.lowerVolumeLimit !== '') {
                 data.lowerVolumeLimit = parseInt(data.lowerVolumeLimit) / 100;
             } else {
                 delete data.lowerVolumeLimit;
             }
-            if(typeof data.upperVolumeLimit !== 'undefined' && !isNaN(data.upperVolumeLimit) && data.upperVolumeLimit !== '') {
+            if(typeof data.upperVolumeLimit !== 'undefined' &&
+                !isNaN(data.upperVolumeLimit) &&
+                data.upperVolumeLimit !== '') {
                 data.upperVolumeLimit = parseInt(data.upperVolumeLimit) / 100;
             } else {
                 delete data.upperVolumeLimit;
@@ -272,13 +305,28 @@ module.exports = function(RED) {
                 data.delay = 250;
             }
 
-            if (typeof data.contentType !== 'undefined' && typeof data.url !== 'undefined') {
+            if (typeof data.url !== 'undefined') {
                 this.debug("initialize playing url='" + data.url + "' of contentType='" + data.contentType + "'");
-                data.media = {
-                    contentId: data.url,
-                    contentType: data.contentType || 'audio/mp3',
-                    streamType: 'BUFFERED' // or LIVE
-                  };
+
+                if (typeof media === 'object') {
+                    data.media.contentId = data.url;
+                } else {
+                    data.media = {
+                        contentId: data.url,
+                        contentType: data.contentType,
+                      };
+                }
+            }
+
+            if (typeof data.contentType !== 'undefined' &&
+                typeof media === 'object') {
+                data.media.contentType = data.contentType;
+            }
+
+            if (typeof data.duration !== 'undefined' &&
+                !isNaN(data.duration) &&
+                typeof media === 'object') {
+                data.media.duration = data.duration;
             }
 
             try {

@@ -123,13 +123,12 @@
          For this the message needs to be specified. Thus can
          be done in the configuration or pass as a message property <code>msg.message</code> or give a payload object with the property <code>msg.payload.message</code></li>
          <li>get the state of the cast device<br />
-            For this no url or message has to be specified.</li>
-        </ol>
-     <p>If there is a combination of both, first the media file given by URL will
-     be streamed and then the message media file.</p>
+         For this no url or message has to be specified.</li>
+     </ol>
+     <p>If there is a combination of the message and the url, first the media file given by URL will
+     be streamed and then the message.</p>
      <p>If the payload is a string and no contentType is defined, the payload
      will be used as a message which should be spoken.</p>
-
      <h3>References</h3>
     <ul>
 		<li><a href="https://github.com/Hypnos3/node-red-contrib-cast">GitHub</a> - the nodes github repository</li>

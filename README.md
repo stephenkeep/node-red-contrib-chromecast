@@ -51,16 +51,32 @@ Options for the incomming message object:
   - **Language**, `msg.language` or `msg.payload.language` the language which should be used for conveting the message to the media file.
   - **Volume**, `msg.volume` or `msg.payload.volume` the volume should be set.
 
-- Additional options not configurable:
+- Additional options (not configurable):
     - `msg.lowerVolumeLimit` or `msg.payload.lowerVolumeLimit` will set the volume to this value, if the current volume is below this value.
     - `msg.upperVolumeLimit` or `msg.payload.upperVolumeLimit` will set the volume to this value, if the current volume is above this limit.
     - `msg.muted` or `msg.payload.muted` the volume will be muted if set to false, otherwise the volume will be unmuted.
-
+    - `msg.seek` or `msg.payload.seek` will sets the current position in the stream.
+    - `msg.duration` or `msg.payload.duration` will sets the duration of the playing stream in seconds.
 
 So the config can be at 3 places. The config of the node, a property of the `msg.payload` or a property of the `msg` object. The information is loaded in that order (e.g. url):
   - _(1st)_ If the `msg.payload` is a object and contains a property `msg.payload.url` this setting will be used.
     - _(2nd)_ otherwise if the `msg` object contains the property `msg.url` this setting will be used.
       - _(3rd)_ otherwise if in the configuration the **Media Url** property is set this url will be used.
+
+## Advanced
+When no **Media Url** or **Message** is setup, the player status will be queried and send as output.
+
+The player can be controlled diectly, by `msg.payload.media`. This must be an object with the following properties:
+
+| Name        	| Type   	| Description                                                                                    	|
+|-------------	|--------	|------------------------------------------------------------------------------------------------	|
+| contentId   	| string 	|  Url of the media. Will replaced by configured url, `msg.payload.url` or `msg.url` if defined. 	|
+| streamType  	| string 	| Describes the type of media artifact as one of the following: 'NONE' 'BUFFERED' 'LIVE'         	|
+| contentType 	| string 	| MIME content type of the media being played                                                    	|
+| metadata    	| object 	| optional  The media metadata object, one of the following:                                     	|
+| duration    	| double 	| optional  Duration of the currently playing stream in seconds                                  	|
+Additional information see under "https://developers.google.com/cast/docs/reference/messages#MediaInformation".
+
 
 ## Bugs and Feedback
 
