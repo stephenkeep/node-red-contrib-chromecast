@@ -9,9 +9,11 @@
 [![Issues](https://img.shields.io/github/issues/hypnos3/node-red-contrib-cast.svg?style=flat-square)](https://github.com/hypnos3/node-red-contrib-cast/issues)
 <!-- [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) -->
 
-These nodes are based on a fork of the node-red-contrib-chromecast. It is for play media on a chromecast or a google home device.
+These nodes are based on a fork of the node-red-contrib-chromecast. It is for stream media on a chromecast or a google home device.
 
-> Warning, this is still in development!!
+![nodes](images/appearance1.png?raw=true)
+
+> This is still in development!
 
 ## Installation
 
@@ -21,26 +23,26 @@ These nodes are based on a fork of the node-red-contrib-chromecast. It is for pl
 
 Simple flow that sends an mp3 to the chromecast or google cast device:
 
-![example 1](images/example1.png?raw=true "Echo Flow")
+![example 1](images/example1.png?raw=true)
 
     `[{"id":"a21f1807.41d7f8","type":"cast-to-client","z":"d900d7d9.c4c498","name":"","url":null,"contentType":"","message":null,"language":"en","ip":"","port":"","volume":null,"x":590,"y":80,"wires":[["fba1eb3.2515918"]]},{"id":"74313baf.f282f4","type":"inject","z":"d900d7d9.c4c498","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":160,"y":80,"wires":[["53d91dd8.67b924"]]},{"id":"53d91dd8.67b924","type":"change","z":"d900d7d9.c4c498","name":"","rules":[{"t":"set","p":"ip","pt":"msg","to":"192.168.1.125","tot":"str"},{"t":"set","p":"url","pt":"msg","to":"http://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=0&textlen=32&client=tw-ob&q=Word%20Up&tl=En-gb","tot":"str"},{"t":"set","p":"contentType","pt":"msg","to":"audio/mp3","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":380,"y":80,"wires":[["a21f1807.41d7f8"]]},{"id":"fba1eb3.2515918","type":"debug","z":"d900d7d9.c4c498","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":790,"y":80,"wires":[]},{"id":"9ef34079.24061","type":"comment","z":"d900d7d9.c4c498","name":"stream a url","info":"","x":130,"y":40,"wires":[]}]`
 
 Simple flow that sends an text to Google TTS and the result to a the chromecast or google cast device:
 
-![example 2](images/example2.png?raw=true "Echo Flow")
+![example 2](images/example2.png?raw=true)
 
     `[{"id":"8d9663a.05e27a","type":"cast-to-client","z":"d900d7d9.c4c498","name":"","url":null,"contentType":"","message":null,"language":"en","ip":"","port":"","volume":null,"x":590,"y":200,"wires":[["b885e401.447548"]]},{"id":"6faf449b.c11efc","type":"inject","z":"d900d7d9.c4c498","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":160,"y":200,"wires":[["23bdf480.46b85c"]]},{"id":"23bdf480.46b85c","type":"change","z":"d900d7d9.c4c498","name":"","rules":[{"t":"set","p":"ip","pt":"msg","to":"192.168.1.125","tot":"str"},{"t":"set","p":"url","pt":"msg","to":"Word Up","tot":"str"},{"t":"set","p":"language","pt":"msg","to":"En-gb","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":380,"y":200,"wires":[["8d9663a.05e27a"]]},{"id":"b885e401.447548","type":"debug","z":"d900d7d9.c4c498","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":790,"y":200,"wires":[]},{"id":"9a5a2ce.5ae7ed","type":"comment","z":"d900d7d9.c4c498","name":"say a text","info":"","x":120,"y":160,"wires":[]}]`
 
 ## Implemented Nodes
 
- * Play Node - Send media to chromecast or googole home devices
+ * Cast Node - Send media to chromecast or googole home devices
 
 ## How to use
 
 The cast node has a couple of settings, which can be provided by the configuration or by the incomming message object.
 
 Configuration posibilities:
-![configuration of the node](images/node-cast-properties.png?raw=true "Echo Flow")
+![configuration of the node](images/node-cast-properties.png?raw=true)
 
 Options for the incomming message object:
   - **IP**, `msg.url` or `msg.payload.url` the IP address of the device to cast the media. Could also be defined in the configuration of the node.
@@ -75,6 +77,14 @@ More advanced control is possible by using `msg.payload.media`. This must be an 
 | contentType 	| string 	| MIME content type of the media being played.<br>If defined in configuration or by `msg.contentType` or `msg.payload.contentType` this property will be set or overwritten.<br>If not defined, `audio/mp3` will be used. |
 | _metadata_    	| object 	| [metadata](https://developers.google.com/cast/docs/reference/messages#MediaInformation) which should be used. |
 | _duration_    	| double 	| Duration of the currently playing stream in seconds.<br>If defined as `msg.duration` or `msg.payload.duration` this property will be set or overwritten. |
+
+## Tip
+For different recipients it can be useful to change the icon:<br>
+![node appearance](images/appearance2.png?raw=true)<br>
+To do that simply choose another icon in the node settings:<br>
+![node settings](images/changing_node_icon.png?raw=true)<br>
+The node already comes with a selection of useful icons:<br>
+![useful icons](images/node_icons.png?raw=true)
 
 ## Bugs and Feedback
 
