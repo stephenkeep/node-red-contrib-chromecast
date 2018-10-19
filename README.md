@@ -41,7 +41,7 @@ Simple flow that sends an text to Google TTS and the result to a the chromecast 
 
 The cast node has a couple of settings, which can be provided by the configuration or by the incomming message object.
 
-Configuration posibilities:
+Configuration posibilities:<br>
 ![configuration of the node](images/node-cast-properties.png?raw=true)
 
 Options for the incomming message object:
