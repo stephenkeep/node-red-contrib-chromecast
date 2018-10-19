@@ -79,12 +79,12 @@ More advanced control is possible by using `msg.payload.media`. This must be an 
 | _duration_    	| double 	| Duration of the currently playing stream in seconds.<br>If defined as `msg.duration` or `msg.payload.duration` this property will be set or overwritten. |
 
 ## Tip
-For different recipients it can be useful to change the icon:<br>
+To differentiate different recivers, it may be helpful to choose different icons.<br>
 ![node appearance](images/appearance2.png?raw=true)<br>
-To do that simply choose another icon in the node settings:<br>
+This is possible by choosing another icon in the Node Settings:<br>
 ![node settings](images/changing_node_icon.png?raw=true)<br>
-The node already comes with a selection of useful icons:<br>
-![useful icons](images/node_icons.png?raw=true)
+For this purpose, the node already comes with a selection of useful icons:<br>
+![useful icons](images/node-icons.png?raw=true)
 
 ## Bugs and Feedback
 
