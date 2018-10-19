@@ -75,6 +75,7 @@ The player can be controlled diectly, by `msg.payload.media`. This must be an ob
 | contentType 	| string 	| MIME content type of the media being played                                                    	|
 | metadata    	| object 	| optional  The media metadata object, one of the following:                                     	|
 | duration    	| double 	| optional  Duration of the currently playing stream in seconds                                  	|
+
 Additional information see under "https://developers.google.com/cast/docs/reference/messages#MediaInformation".
 
 
