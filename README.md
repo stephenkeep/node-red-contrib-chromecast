@@ -6,8 +6,8 @@
 [![HitCount](http://hits.dwyl.io/hypnos3/node-red-contrib-cast.svg)](http://hits.dwyl.io/hypnos3/node-red-contrib-cast)
 [![Dependencies Status](https://david-dm.org/hypnos3/node-red-contrib-cast/status.svg)](https://david-dm.org/hypnos3/node-red-contrib-cast)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![Issues](https://img.shields.io/github/issues/hypnos3/node-red-contrib-cast.svg?style=flat-square)](https://github.com/hypnos3/node-red-contrib-cast/issues)
+<!-- [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) -->
 
 These nodes are based on a fork of the node-red-contrib-chromecast. It is for play media on a chromecast or a google home device.
 
@@ -70,11 +70,11 @@ The player can be controlled diectly, by `msg.payload.media`. This must be an ob
 
 | Name        	| Type   	| Description                                                                                    	|
 |-------------	|--------	|------------------------------------------------------------------------------------------------	|
-| contentId   	| string 	|  Url of the media. Will replaced by configured url, `msg.payload.url` or `msg.url` if defined. 	|
-| streamType  	| string 	| Describes the type of media artifact as one of the following: 'NONE' 'BUFFERED' 'LIVE'         	|
-| contentType 	| string 	| MIME content type of the media being played                                                    	|
-| metadata    	| object 	| optional  The media metadata object, one of the following:                                     	|
-| duration    	| double 	| optional  Duration of the currently playing stream in seconds                                  	|
+| contentId   	| string 	|  Url of the media.<br>If the url is defined in confuguration or by `msg.payload.url` or `msg.url` this property will be set or overwritten. |
+| streamType  	| string 	| Describes the type of media artifact as one of the following:<br> `NONE`, `BUFFERED` or `LIVE`.<br>If not defined, `BUFFERED` will be used. |
+| contentType 	| string 	| MIME content type of the media being played.<br>If defined in configuration or by `msg.contentType` or `msg.payload.contentType` this property will be set or overwritten.<br>If not defined, `audio/mp3` will be used. |
+| _metadata_    	| object 	| [metadata](https://developers.google.com/cast/docs/reference/messages#MediaInformation) which should be used. |
+| _duration_    	| double 	| Duration of the currently playing stream in seconds.<br>If defined as `msg.duration` or `msg.payload.duration` this property will be set or overwritten. |
 
 Additional information see under "https://developers.google.com/cast/docs/reference/messages#MediaInformation".
 
