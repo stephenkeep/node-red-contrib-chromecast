@@ -2,20 +2,28 @@
   "name": "node-red-contrib-cast",
   "version": "0.1.1",
   "description": "NodeRED nodes to for Chromecast and Google Home",
-  "main": "index.js",
+  "main": "cast-to-client.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "predev": "npm i -g",
     "dev": "node-red -v"
   },
-  "author": "Robert Gester",
+  "author": {
+    "name": "Hypnos3",
+    "email": "hypnos3@online.de",
+    "url": "https://github.com/hypnos3"
+  },
   "contributors": [
     {
       "name": "Stephen Keep",
-      "email": "stephenkeep@gmail.com"
+      "email": "stephenkeep@gmail.com",
+      "url": "https://github.com/stephenkeep"
     }, {
-      "name": "Robert Gester",
-      "email": "hypnos3@online.de"
+      "name": "Hypnos3",
+      "url": "https://github.com/hypnos3"
+    }, {
+      "name": "Paul-Reed",
+      "url" : "https://github.com/Paul-Reed"
     }
   ],
   "keywords": [
@@ -26,14 +34,18 @@
     "googlehome",
     "cast-to-client"
   ],
+  "homepage":"https://github.com/Hypnos3/node-red-contrib-cast",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/Hypnos3/node-red-contrib-cast"
   },
+  "bugs":{
+    "url" : "https://github.com/Hypnos3/node-red-contrib-cast/issues"
+  },
   "dependencies": {
-    "castv2-client": "1.2.0",
-    "google-tts-api" : "0.0.3"
+    "castv2-client": ">=1.2.0",
+    "google-tts-api" : ">=0.0.3"
   },
   "node-red": {
     "nodes": {
