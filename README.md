@@ -66,7 +66,7 @@ So the config can be at 3 places. The config of the node, a property of the `msg
 ## Advanced
 When no **Media Url** or **Message** is setup, the player status will be queried and send as output.
 
-The player can be controlled diectly, by `msg.payload.media`. This must be an object with the following properties:
+More advanced control is possible by using `msg.payload.media`. This must be an [object](https://developers.google.com/cast/docs/reference/messages#MediaInformation) with the following properties:
 
 | Name        	| Type   	| Description                                                                                    	|
 |-------------	|--------	|------------------------------------------------------------------------------------------------	|
@@ -75,9 +75,6 @@ The player can be controlled diectly, by `msg.payload.media`. This must be an ob
 | contentType 	| string 	| MIME content type of the media being played.<br>If defined in configuration or by `msg.contentType` or `msg.payload.contentType` this property will be set or overwritten.<br>If not defined, `audio/mp3` will be used. |
 | _metadata_    	| object 	| [metadata](https://developers.google.com/cast/docs/reference/messages#MediaInformation) which should be used. |
 | _duration_    	| double 	| Duration of the currently playing stream in seconds.<br>If defined as `msg.duration` or `msg.payload.duration` this property will be set or overwritten. |
-
-Additional information see under "https://developers.google.com/cast/docs/reference/messages#MediaInformation".
-
 
 ## Bugs and Feedback
 
