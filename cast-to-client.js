@@ -70,9 +70,71 @@ const getSpeechUrl = function (node, text, language, options, callback) {
 const doCast = function (node, media, options, callbackResult) {
     var client = new Client();
 
+    const onStatus = function (status) {
+        if (node) {
+            node.send([null, {
+                payload: status,
+                type: 'status',
+                topic: ''
+            }]);
+        }
+    };
+    const onClose = function () {
+        if (node) {
+            node.debug('Player Close');
+        }         
+        client.close();
+        /*reconnect(function(newclient, newplayer) {
+            chcClient = newclient;
+            chcPlayer = newplayer;
+        });*/
+    };
+    const onError = function (err) {
+        client.close();
+        errorHandler(node, err, 'Client error reported', 'client error');
+    };
+
+    const statusCallback = function () {
+        client.getSessions(function(err, sessions) {
+            if (err) {
+                errorHandler(node, err, 'error getting session');
+            } else {
+                var session = sessions[0]; // For now only one app runs at once, so using the first session should be ok
+                if (node) {
+                    node.debug("session: " + JSON.stringify(sessions[0]));
+                }
+                client.join(session, DefaultMediaReceiver, function(err, player) {
+                    if (err) {
+                        errorHandler(node, err, 'error joining session');
+                    } else {
+                        if (node) {
+                            node.debug('session joined ...');
+                        }                        
+                        player.on('status', onStatus);
+                        player.on('close', onClose);
+
+                        if (node) {
+                            node.debug('do get Status from player');
+                        }
+                        client.getStatus(function (err, status) {
+                            if (err) {
+                                errorHandler(node, err, 'Not able to get status');
+                            } else {
+                                callbackResult(status, options);
+                            }
+                            client.close();
+                        });
+                    }
+                });
+            }
+        });        
+    }
+
     const connectedCallback = function () {
         client.launch(DefaultMediaReceiver, (err, player) => {
-
+            if (err) {
+                errorHandler(node, err, 'Not able to launch DefaultMediaReceiver');
+            }
             const doSetVolume = function (volume) {
                 var obj = {};
                 if (volume < 0.01) {
@@ -101,7 +163,7 @@ const doCast = function (node, media, options, callbackResult) {
             };
             try {
 
-                if (typeof options.volume !== 'undefined') {
+                if (typeof options.volume !== 'undefined' && options.volume != null) {
                     doSetVolume(options.volume);
                 } else if (typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
                     //eventually getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
@@ -123,7 +185,7 @@ const doCast = function (node, media, options, callbackResult) {
                     });
                 }
 
-                if (typeof options.muted !== 'undefined') {
+                if (typeof options.muted !== 'undefined' && options.muted != null) {
                     doSetVolume({
                         muted: (options.muted === true)
                     });
@@ -172,7 +234,9 @@ const doCast = function (node, media, options, callbackResult) {
                     });
                 }
 
-                if (typeof media === 'object' &&
+                if (media != null &&
+                    typeof media !== 'undefined' &&
+                    typeof media === 'object' &&
                     typeof media.contentId !== 'undefined') {
                     if (!media.contentType) {
                         media.contentType = 'audio/mp3';
@@ -209,7 +273,7 @@ const doCast = function (node, media, options, callbackResult) {
                     });
                 } else {
                     if (node) {
-                        node.debug('getting Status signal to player');
+                        node.debug('get Status from player');
                     }
                     client.getStatus(function (err, status) {
                         if (err) {
@@ -217,39 +281,37 @@ const doCast = function (node, media, options, callbackResult) {
                         } else {
                             callbackResult(status, options);
                         }
+                        client.close();
                     });
                 }
+                
             } catch (err) {
                 errorHandler(node, err, 'Exception occured on load media', 'exception load media');
             }
         });
     };
 
-    client.on('error', (err) => {
-        client.close();
-        errorHandler(node, err, 'Client error reported', 'client error');
-    });
-
-    client.on('status', (status) => {
-        if (node) {
-            node.send([null, {
-                payload: status,
-                type: 'status',
-                topic: ''
-            }]);
-        }
-    });
+    client.on('error', onError);
+    client.on('status', onStatus);
 
     if (typeof options.port === 'undefined') {
         if (node) {
             node.debug('connect to client ip=\'' + options.ip + '\'');
         }
-        client.connect(options.ip, connectedCallback);
+        if (typeof options.status !== 'undefined' && options.status === true) {
+            client.connect(options.ip, statusCallback);
+        } else {
+            client.connect(options.ip, connectedCallback);
+        }
     } else {
         if (node) {
             node.debug('connect to client ip=\'' + options.ip + '\' port=\'' + options.port + '\'');
         }
-        client.connect(options.ip, options.port, connectedCallback);
+        if (typeof options.status !== 'undefined' && options.status === true) {
+            client.connect(options.ip, options.port, statusCallback);
+        } else {
+            client.connect(options.ip, options.port, connectedCallback);
+        }
     }
 };
 
@@ -294,7 +356,7 @@ module.exports = function (RED) {
              * versenden:
              *********************************************/
             //var creds = RED.nodes.getNode(config.creds); - not used
-            let attrs = ['media', 'url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration'];
+            let attrs = ['media', 'url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
 
             var data = {};
             for (let attr of attrs) {
