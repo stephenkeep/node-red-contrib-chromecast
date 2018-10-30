@@ -96,7 +96,7 @@ For this purpose, the node already comes with a selection of useful icons:<br>
 For bugs, questions and discussions please use the
 [GitHub Issues](https://github.com/Hypnos3/node-red-contrib-cast/issues).
 
-### :moneybag: Donations [![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XDPSATTXBXHCL) [![Greenkeeper badge](https://badges.greenkeeper.io/Hypnos3/node-red-contrib-cast.svg)](https://greenkeeper.io/)
+### :moneybag: Donations [![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XDPSATTXBXHCL)
 
 Even for those that don't have the technical knowhow to help developing on there are ways to support development. So if you want to donate some money please feel free to send money via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XDPSATTXBXHCL).
 
@@ -112,3 +112,7 @@ Unless required by applicable law or agreed to in writing, software distributed
 under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
+
+## Other
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/Hypnos3/node-red-contrib-cast.svg)](https://greenkeeper.io/)
