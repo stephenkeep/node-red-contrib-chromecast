@@ -94,6 +94,106 @@ const doCast = function (node, media, options, callbackResult) {
         errorHandler(node, err, 'Client error reported', 'client error');
     };
 
+    const doSetVolume = function (volume) {
+        var obj = {};
+        if (volume < 0.01) {
+            obj = {
+                muted: true
+            };
+        } else if (volume > 0.99) {
+            obj = {
+                level: 1
+            };
+        } else {
+            obj = {
+                level: volume
+            };
+        }
+        if (node) {
+            node.debug('try to set volume ' + JSON.stringify(obj));
+        }
+        client.setVolume(obj, function (err, newvol) {
+            if (err) {
+                errorHandler(node, err, 'Not able to set the volume');
+            } else if (node) {
+                node.log('volume changed to %s', Math.round(newvol.level * 100));
+            }
+        });
+    };
+
+    const checkOptions = function (options) {
+        if (typeof options.volume !== 'undefined' && options.volume != null) {
+            doSetVolume(options.volume);
+        } else if (typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
+            //eventually getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
+            client.getVolume(function (err, newvol) {
+                if (err) {
+                    errorHandler(node, err, 'Not able to get the volume');
+                } else {
+                    if (node) {
+                        node.debug('volume get from client ' + JSON.stringify(newvol));
+                    }
+                    options.oldVolume = newvol.level * 100;
+                    options.muted = (newvol.level < 0.01);
+                    if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
+                        doSetVolume(options.upperVolumeLimit);
+                    } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < options.lowerVolumeLimit)) {
+                        doSetVolume(options.lowerVolumeLimit);
+                    }
+                }
+            });
+        }
+
+        if (typeof options.muted !== 'undefined' && options.muted != null) {
+            doSetVolume({
+                muted: (options.muted === true)
+            });
+        }
+
+        if (typeof options.pause !== 'undefined' && options.pause === true) {
+            if (node) {
+                node.debug('sending pause signal to player');
+            }
+
+            client.getSessions(function (err, sessions) {
+                if (err) {
+                    errorHandler(node, err, 'Not able to get sessions');
+                } else {
+                    client.join(sessions[0], DefaultMediaReceiver, function (err, app) {
+                        if (!app.media.currentSession) {
+                            app.getStatus(function () {
+                                app.pause();
+                            });
+                        } else {
+                            app.pause();
+                        }
+                    });
+                }
+            });
+        }
+
+        if (typeof options.stop !== 'undefined' && options.stop === true) {
+            if (node) {
+                node.debug('sending pause signal to player');
+            }
+            client.getSessions(function (err, sessions) {
+                if (err) {
+                    errorHandler(node, err, 'Not able to get sessions');
+                } else {
+                    client.join(sessions[0], DefaultMediaReceiver, function (err, app) {
+                        if (!app.media.currentSession) {
+                            app.getStatus(function () {
+                                app.stop();
+                            });
+                        } else {
+                            app.stop();
+                        }
+                    });
+                }
+            });
+        }        
+    }
+
     /*
 status of a playing audio stream:
     {"applications":[{"appId":"12F05308","displayName":"TuneIn Free","iconUrl":"https://lh3.googleusercontent.com/HY9FJJF6gvT-JykObo1KvoNbewRoUJa2VjsE8TRgmBUmFFYGDI3FYJRGxGkj9gkMh_f3K-QSytav8G8","isIdleScreen":false,"launchedFromCloud":true,"namespaces":[{"name":"urn:x-cast:com.google.cast.cac"},{"name":"urn:x-cast:com.tunein.cast.init"},{"name":"urn:x-cast:com.tunein.cast.initUrl"},{"name":"urn:x-cast:com.tunein.cast.play"},{"name":"urn:x-cast:com.tunein.cast.pause"},{"name":"urn:x-cast:com.tunein.cast.stop"},{"name":"urn:x-cast:com.tunein.cast.comm.addSender"},{"name":"urn:x-cast:com.tunein.cast.comm.mediaLoaded"},{"name":"urn:x-cast:com.tunein.cast.comm.playState"},{"name":"urn:x-cast:com.tunein.cast.comm.tuneDataLoaded"},{"name":"urn:x-cast:com.tunein.cast.comm.scrubberMovedMessage"},{"name":"urn:x-cast:com.tunein.cast.comm.nowPlayingDataLoaded"},{"name":"urn:x-cast:com.tunein.cast.comm.error"},{"name":"urn:x-cast:com.google.cast.broadcast"},{"name":"urn:x-cast:com.google.cast.media"}],"sessionId":"ee64fbea-2828-475c-be1d-5a4adaad1804","statusText":"Casting: Radio Dresden","transportId":"ee64fbea-2828-475c-be1d-5a4adaad1804"}],"userEq":{"high_shelf":{"frequency":4500,"gain_db":0,"quality":0.707},"low_shelf":{"frequency":150,"gain_db":0,"quality":0.707},"max_peaking_eqs":0,"peaking_eqs":[]},"volume":{"controlType":"master","level":0.2799999713897705,"muted":false,"stepInterval":0.019999999552965164}}
@@ -107,33 +207,38 @@ status of a playing audio stream:
             if (err) {
                 errorHandler(node, err, 'error getting session');
             } else {
-                var session = sessions[0]; // For now only one app runs at once, so using the first session should be ok
-                if (node) {
-                    node.debug("session: " + JSON.stringify(sessions[0]));
-                }
-                client.join(session, DefaultMediaReceiver, function(err, player) {
-                    if (err) {
-                        errorHandler(node, err, 'error joining session');
-                    } else {
-                        if (node) {
-                            node.debug('session joined ...');
-                        }                        
-                        player.on('status', onStatus);
-                        player.on('close', onClose);
-
-                        if (node) {
-                            node.debug('do get Status from player');
-                        }
-                        client.getStatus(function (err, status) {
-                            if (err) {
-                                errorHandler(node, err, 'Not able to get status');
-                            } else {
-                                callbackResult(status, options);
-                            }
-                            client.close();
-                        });
+                try {
+                    checkOptions(options);
+                    var session = sessions[0]; // For now only one app runs at once, so using the first session should be ok
+                    if (node) {
+                        node.debug("session: " + JSON.stringify(sessions[0]));
                     }
-                });
+                    client.join(session, DefaultMediaReceiver, function(err, player) {
+                        if (err) {
+                            errorHandler(node, err, 'error joining session');
+                        } else {
+                            if (node) {
+                                node.debug('session joined ...');
+                            }                        
+                            player.on('status', onStatus);
+                            player.on('close', onClose);
+
+                            if (node) {
+                                node.debug('do get Status from player');
+                            }
+                            client.getStatus(function (err, status) {
+                                if (err) {
+                                    errorHandler(node, err, 'Not able to get status');
+                                } else {
+                                    callbackResult(status, options);
+                                }
+                                client.close();
+                            });
+                        }
+                    });
+                } catch (err) {
+                    errorHandler(node, err, 'Exception occured on load media', 'exception load media');
+                }
             }
         });        
     }
@@ -143,114 +248,21 @@ status of a playing audio stream:
             if (err) {
                 errorHandler(node, err, 'Not able to launch DefaultMediaReceiver');
             }
-            const doSetVolume = function (volume) {
-                var obj = {};
-                if (volume < 0.01) {
-                    obj = {
-                        muted: true
-                    };
-                } else if (volume > 0.99) {
-                    obj = {
-                        level: 1
-                    };
-                } else {
-                    obj = {
-                        level: volume
-                    };
-                }
-                if (node) {
-                    node.debug('try to set volume ' + JSON.stringify(obj));
-                }
-                client.setVolume(obj, function (err, newvol) {
-                    if (err) {
-                        errorHandler(node, err, 'Not able to set the volume');
-                    } else if (node) {
-                        node.log('volume changed to %s', Math.round(newvol.level * 100));
-                    }
-                });
-            };
+
             try {
-
-                if (typeof options.volume !== 'undefined' && options.volume != null) {
-                    doSetVolume(options.volume);
-                } else if (typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
-                    //eventually getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
-                    client.getVolume(function (err, newvol) {
-                        if (err) {
-                            errorHandler(node, err, 'Not able to get the volume');
-                        } else {
-                            if (node) {
-                                node.debug('volume get from client ' + JSON.stringify(newvol));
-                            }
-                            options.oldVolume = newvol.level * 100;
-                            options.muted = (newvol.level < 0.01);
-                            if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
-                                doSetVolume(options.upperVolumeLimit);
-                            } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < options.lowerVolumeLimit)) {
-                                doSetVolume(options.lowerVolumeLimit);
-                            }
-                        }
-                    });
-                }
-
-                if (typeof options.muted !== 'undefined' && options.muted != null) {
-                    doSetVolume({
-                        muted: (options.muted === true)
-                    });
-                }
-
-                if (typeof options.pause !== 'undefined' && options.pause === true) {
-                    if (node) {
-                        node.debug('sending pause signal to player');
-                    }
-
-                    client.getSessions(function (err, sessions) {
-                        if (err) {
-                            errorHandler(node, err, 'Not able to get sessions');
-                        } else {
-                            client.join(sessions[0], DefaultMediaReceiver, function (err, app) {
-                                if (!app.media.currentSession) {
-                                    app.getStatus(function () {
-                                        app.pause();
-                                    });
-                                } else {
-                                    app.pause();
-                                }
-                            });
-                        }
-                    });
-                }
-
-                if (typeof options.stop !== 'undefined' && options.stop === true) {
-                    if (node) {
-                        node.debug('sending pause signal to player');
-                    }
-                    client.getSessions(function (err, sessions) {
-                        if (err) {
-                            errorHandler(node, err, 'Not able to get sessions');
-                        } else {
-                            client.join(sessions[0], DefaultMediaReceiver, function (err, app) {
-                                if (!app.media.currentSession) {
-                                    app.getStatus(function () {
-                                        app.stop();
-                                    });
-                                } else {
-                                    app.stop();
-                                }
-                            });
-                        }
-                    });
-                }
+                checkOptions(options);
 
                 if (media != null &&
                     typeof media !== 'undefined' &&
                     typeof media === 'object' &&
                     typeof media.contentId !== 'undefined') {
-                    if (!media.contentType) {
-                        media.contentType = 'audio/mp3';
+                    if (typeof media.contentType !== 'string' ||
+                        media.contentType == '') {
+                        media.contentType = 'audio/basic';
                     }
-                    if (!media.streamType) {
-                        media.contentType = 'BUFFERED';
+                    if (typeof media.streamType !== 'string' ||
+                        media.streamType == '') {
+                        media.streamType = 'BUFFERED';
                     }
 
                     if (node) {
@@ -306,7 +318,8 @@ status of a playing audio stream:
         if (node) {
             node.debug('connect to client ip=\'' + options.ip + '\'');
         }
-        if (typeof options.status !== 'undefined' && options.status === true) {
+        if ((typeof options.status !== 'undefined' && options.status === true) || 
+            (typeof media === 'undefined') || (media == null)) {
             client.connect(options.ip, statusCallback);
         } else {
             client.connect(options.ip, connectedCallback);
@@ -315,7 +328,8 @@ status of a playing audio stream:
         if (node) {
             node.debug('connect to client ip=\'' + options.ip + '\' port=\'' + options.port + '\'');
         }
-        if (typeof options.status !== 'undefined' && options.status === true) {
+        if ((typeof options.status !== 'undefined' && options.status === true) || 
+            (typeof media === 'undefined') || (media == null)) {
             client.connect(options.ip, options.port, statusCallback);
         } else {
             client.connect(options.ip, options.port, connectedCallback);
@@ -364,7 +378,7 @@ module.exports = function (RED) {
              * versenden:
              *********************************************/
             //var creds = RED.nodes.getNode(config.creds); - not used
-            let attrs = ['media', 'url', 'contentType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
+            let attrs = ['media', 'url', 'contentType', 'streamType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
 
             var data = {};
             for (let attr of attrs) {
@@ -429,28 +443,72 @@ module.exports = function (RED) {
                 data.delay = 250;
             }
 
-            if (typeof data.url !== 'undefined') {
+            if (typeof data.url !== 'undefined' &&
+                data.url != null) {
                 this.debug('initialize playing url=\'' + data.url + '\' of contentType=\'' + data.contentType + '\'');
 
-                if (typeof media === 'object') {
-                    data.media.contentId = data.url;
-                } else {
-                    data.media = {
-                        contentId: data.url,
-                        contentType: data.contentType,
-                    };
+                if (typeof data.contentType !== 'string' ||
+                    data.contentType == '') {
+                    if (data.url.indexOf('youtube') !== -1) {
+                        data.contentType = 'youtube/video';
+                    } else if (data.url.indexOf('.mp3') !== -1) {
+                        data.contentType = 'audio/mp3';
+                    } else  if (data.url.indexOf('.mp4') !== -1) {
+                        data.contentType = 'audio/mp4';
+                    } else  if (data.url.indexOf('.mid') !== -1) {
+                        data.contentType = 'audio/mid';
+                    } else  if (data.url.indexOf('.rmi') !== -1) {
+                        data.contentType = 'audio/mid';
+                    } else  if (data.url.indexOf('.aif') !== -1) {
+                        data.contentType = 'audio/x-aiff';
+                    } else  if (data.url.indexOf('.m3u') !== -1) {
+                        data.contentType = 'audio/x-mpegurl';
+                    } else  if (data.url.indexOf('.ogg') !== -1) {
+                        data.contentType = 'audio/ogg';
+                    } else  if (data.url.indexOf('.wav') !== -1) {
+                        data.contentType = 'audio/vnd.wav';
+                    } else  if (data.url.indexOf('.flv') !== -1) {
+                        data.contentType = 'video/x-flv';
+                    } else  if (data.url.indexOf('.m3u8') !== -1) {
+                        data.contentType = 'application/x-mpegURL';
+                    } else  if (data.url.indexOf('.3gp') !== -1) {
+                        data.contentType = 'video/3gpp';
+                    } else  if (data.url.indexOf('.mov') !== -1) {
+                        data.contentType = 'video/quicktime';
+                    } else  if (data.url.indexOf('.avi') !== -1) {
+                        data.contentType = 'video/x-msvideo';
+                    } else  if (data.url.indexOf('.wmv') !== -1) {
+                        data.contentType = 'video/x-ms-wmv';
+                    } else  if (data.url.indexOf('.ra') !== -1) {
+                        data.contentType = 'audio/vnd.rn-realaudio';
+                    } else {
+                        this.warn('No contentType given!, using "audio/basic" which is maybe wrong!');
+                        data.contentType = 'audio/basic';
+                    }
+                }
+                data.media = {
+                    contentId: data.url,
+                    contentType: data.contentType
                 }
             }
 
-            if (typeof data.contentType !== 'undefined' &&
-                typeof media === 'object') {
-                data.media.contentType = data.contentType;
-            }
+            if (typeof data.media === 'object' &&
+                data.media != null) {
 
-            if (typeof data.duration !== 'undefined' &&
-                !isNaN(data.duration) &&
-                typeof media === 'object') {
-                data.media.duration = data.duration;
+                if (typeof data.contentType !== 'undefined' &&
+                    data.contentType != null) {
+                    data.media.contentType = data.contentType;
+                }
+
+                if (typeof data.streamType !== 'undefined' &&
+                    data.streamType != null) {
+                    data.media.streamType = data.streamType;
+                }
+
+                if (typeof data.duration !== 'undefined' &&
+                    !isNaN(data.duration)) {
+                    data.media.duration = data.duration;
+                }
             }
 
             try {
