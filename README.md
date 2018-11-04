@@ -22,17 +22,147 @@ These nodes are based on a fork of the node-red-contrib-chromecast. It is for st
 
 ## Quick Start
 
+### stream a url
+
 Simple flow that sends an mp3 to the chromecast or google cast device:
 
 ![example 1](images/example1.png?raw=true)
 
-    `[{"id":"a21f1807.41d7f8","type":"cast-to-client","z":"d900d7d9.c4c498","name":"","url":null,"contentType":"","message":null,"language":"en","ip":"","port":"","volume":null,"x":590,"y":80,"wires":[["fba1eb3.2515918"]]},{"id":"74313baf.f282f4","type":"inject","z":"d900d7d9.c4c498","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":160,"y":80,"wires":[["53d91dd8.67b924"]]},{"id":"53d91dd8.67b924","type":"change","z":"d900d7d9.c4c498","name":"","rules":[{"t":"set","p":"ip","pt":"msg","to":"192.168.1.125","tot":"str"},{"t":"set","p":"url","pt":"msg","to":"http://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=0&textlen=32&client=tw-ob&q=Word%20Up&tl=En-gb","tot":"str"},{"t":"set","p":"contentType","pt":"msg","to":"audio/mp3","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":380,"y":80,"wires":[["a21f1807.41d7f8"]]},{"id":"fba1eb3.2515918","type":"debug","z":"d900d7d9.c4c498","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":790,"y":80,"wires":[]},{"id":"9ef34079.24061","type":"comment","z":"d900d7d9.c4c498","name":"stream a url","info":"","x":130,"y":40,"wires":[]}]`
+    [{"id":"a21f1807.41d7f8","type":"cast-to-client","z":"d900d7d9.c4c498","name":"","url":null,"contentType":"","message":null,"language":"en","ip":"","port":"","volume":null,"x":590,"y":80,"wires":[["fba1eb3.2515918"]]},{"id":"74313baf.f282f4","type":"inject","z":"d900d7d9.c4c498","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":160,"y":80,"wires":[["53d91dd8.67b924"]]},{"id":"53d91dd8.67b924","type":"change","z":"d900d7d9.c4c498","name":"","rules":[{"t":"set","p":"ip","pt":"msg","to":"192.168.1.125","tot":"str"},{"t":"set","p":"url","pt":"msg","to":"http://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=0&textlen=32&client=tw-ob&q=Word%20Up&tl=En-gb","tot":"str"},{"t":"set","p":"contentType","pt":"msg","to":"audio/mp3","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":380,"y":80,"wires":[["a21f1807.41d7f8"]]},{"id":"fba1eb3.2515918","type":"debug","z":"d900d7d9.c4c498","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":790,"y":80,"wires":[]},{"id":"9ef34079.24061","type":"comment","z":"d900d7d9.c4c498","name":"stream a url","info":"","x":130,"y":40,"wires":[]}]
+
+### sends an text to Google TTS
 
 Simple flow that sends an text to Google TTS and the result to a the chromecast or google cast device:
 
 ![example 2](images/example2.png?raw=true)
 
-    `[{"id":"8d9663a.05e27a","type":"cast-to-client","z":"d900d7d9.c4c498","name":"","url":null,"contentType":"","message":null,"language":"en","ip":"","port":"","volume":null,"x":590,"y":200,"wires":[["b885e401.447548"]]},{"id":"6faf449b.c11efc","type":"inject","z":"d900d7d9.c4c498","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":160,"y":200,"wires":[["23bdf480.46b85c"]]},{"id":"23bdf480.46b85c","type":"change","z":"d900d7d9.c4c498","name":"","rules":[{"t":"set","p":"ip","pt":"msg","to":"192.168.1.125","tot":"str"},{"t":"set","p":"url","pt":"msg","to":"Word Up","tot":"str"},{"t":"set","p":"language","pt":"msg","to":"En-gb","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":380,"y":200,"wires":[["8d9663a.05e27a"]]},{"id":"b885e401.447548","type":"debug","z":"d900d7d9.c4c498","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":790,"y":200,"wires":[]},{"id":"9a5a2ce.5ae7ed","type":"comment","z":"d900d7d9.c4c498","name":"say a text","info":"","x":120,"y":160,"wires":[]}]`
+    [{"id":"8d9663a.05e27a","type":"cast-to-client","z":"d900d7d9.c4c498","name":"","url":null,"contentType":"","message":null,"language":"en","ip":"","port":"","volume":null,"x":590,"y":200,"wires":[["b885e401.447548"]]},{"id":"6faf449b.c11efc","type":"inject","z":"d900d7d9.c4c498","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":160,"y":200,"wires":[["23bdf480.46b85c"]]},{"id":"23bdf480.46b85c","type":"change","z":"d900d7d9.c4c498","name":"","rules":[{"t":"set","p":"ip","pt":"msg","to":"192.168.1.125","tot":"str"},{"t":"set","p":"url","pt":"msg","to":"Word Up","tot":"str"},{"t":"set","p":"language","pt":"msg","to":"En-gb","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":380,"y":200,"wires":[["8d9663a.05e27a"]]},{"id":"b885e401.447548","type":"debug","z":"d900d7d9.c4c498","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":790,"y":200,"wires":[]},{"id":"9a5a2ce.5ae7ed","type":"comment","z":"d900d7d9.c4c498","name":"say a text","info":"","x":120,"y":160,"wires":[]}]
+
+### play a video on chromecast
+
+
+    [{"id":"443984d.4919a7c","type":"cast-to-client","z":"c4dd07cf.84ae98","name":"","url":"","contentType":"","message":"","language":"de","ip":"192.168.1.125","port":"","volume":"","x":490,"y":840,"wires":[["cad88339.e69ff"]]},{"id":"cc601032.ef8b9","type":"inject","z":"c4dd07cf.84ae98","name":"","topic":"","payload":"youtube","payloadType":"str","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":110,"y":840,"wires":[["62aea8fa.99c718"]]},{"id":"cad88339.e69ff","type":"debug","z":"c4dd07cf.84ae98","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":710,"y":840,"wires":[]},{"id":"62aea8fa.99c718","type":"change","z":"c4dd07cf.84ae98","name":"","rules":[{"t":"set","p":"url","pt":"msg","to":"http://commondatastorage.googleapis.com/gtv-videos-bucket/big_buck_bunny_1080p.mp4","tot":"str"},{"t":"set","p":"contentType","pt":"msg","to":"video/mp4","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":300,"y":840,"wires":[["443984d.4919a7c"]]}]
+
+
+### get status of a cast device
+
+    [{"id":"82e3c67a.27b218","type":"cast-to-client","z":"c4dd07cf.84ae98","name":"","url":"","contentType":"","message":"","language":"en","ip":"192.168.1.125","port":"","volume":"","x":490,"y":220,"wires":[["6bc79592.92574c"]]},{"id":"a5bddaf0.4e9578","type":"inject","z":"c4dd07cf.84ae98","name":"","topic":"","payload":"","payloadType":"str","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":110,"y":220,"wires":[["82e3c67a.27b218"]]},{"id":"6bc79592.92574c","type":"debug","z":"c4dd07cf.84ae98","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":710,"y":220,"wires":[]}]
+
+This will given an object of the following form:
+
+```
+{
+	"applications": [{
+			"appId": "CC1AD845",
+			"displayName": "Default Media Receiver",
+			"iconUrl": "",
+			"isIdleScreen": false,
+			"launchedFromCloud": false,
+			"namespaces": [{
+					"name": "urn:x-cast:com.google.cast.cac"
+				}, {
+					"name": "urn:x-cast:com.google.cast.broadcast"
+				}, {
+					"name": "urn:x-cast:com.google.cast.media"
+				}
+			],
+			"sessionId": "8g547685-4ce7-4968-b656-8679b01f9a77",
+			"statusText": "Default Media Receiver",
+			"transportId": "8g547685-4ce7-4968-b656-8679b01f9a77"
+		}
+	],
+	"userEq": {
+		"high_shelf": {
+			"frequency": 4500,
+			"gain_db": 0,
+			"quality": 0.707
+		},
+		"low_shelf": {
+			"frequency": 150,
+			"gain_db": 0,
+			"quality": 0.707
+		},
+		"max_peaking_eqs": 0,
+		"peaking_eqs": []
+	},
+	"volume": {
+		"controlType": "master",
+		"level": 0.15000000596046448,
+		"muted": false,
+		"stepInterval": 0.019999999552965164
+	}
+}
+```
+
+or if currently playing media
+
+```
+{
+	"applications": [{
+			"appId": "12F05308",
+			"displayName": "TuneIn Free",
+			"iconUrl": "https://lh3.googleusercontent.com/HY9FJJF6gvT-JykObo1KvoNbewRoUJa2VjsE8TRgmBUmFFYGDI3FYJRGxGkj9gkMh_f3K-QSytav8G8",
+			"isIdleScreen": false,
+			"launchedFromCloud": true,
+			"namespaces": [{
+					"name": "urn:x-cast:com.google.cast.cac"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.init"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.initUrl"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.play"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.pause"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.stop"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.comm.addSender"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.comm.mediaLoaded"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.comm.playState"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.comm.tuneDataLoaded"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.comm.scrubberMovedMessage"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.comm.nowPlayingDataLoaded"
+				}, {
+					"name": "urn:x-cast:com.tunein.cast.comm.error"
+				}, {
+					"name": "urn:x-cast:com.google.cast.broadcast"
+				}, {
+					"name": "urn:x-cast:com.google.cast.media"
+				}
+			],
+			"sessionId": "1f8d64e1-fde4-42kb-xxc3-b77493ej54a6",
+			"statusText": "Casting: Radio Dresden",
+			"transportId": "1f8d64e1-fde4-42kb-xxc3-b77493ej54a6"
+		}
+	],
+	"userEq": {
+		"high_shelf": {
+			"frequency": 4500,
+			"gain_db": 0,
+			"quality": 0.707
+		},
+		"low_shelf": {
+			"frequency": 150,
+			"gain_db": 0,
+			"quality": 0.707
+		},
+		"max_peaking_eqs": 0,
+		"peaking_eqs": []
+	},
+	"volume": {
+		"controlType": "master",
+		"level": 0.15000000596046448,
+		"muted": false,
+		"stepInterval": 0.019999999552965164
+	}
+}
+```
 
 ## Implemented Nodes
 
