@@ -3,6 +3,8 @@
  *********************************************/
 const Client = require('castv2-client').Client;
 const DefaultMediaReceiver = require('castv2-client').DefaultMediaReceiver;
+const YoutubeMediaReceiver = require('youtube-castv2-client').Youtube;
+//const YoutubeMediaReceiver = require('castv2-youtube').Youtube;;
 const googletts = require('google-tts-api');
 
 const errorHandler = function (node, err, messageText, stateText) {
@@ -243,7 +245,32 @@ status of a playing audio stream:
         });        
     }
 
-    const connectedCallback = function () {
+    const launchYTCallback = function () {
+        client.launch(YoutubeMediaReceiver, function(err, player) {
+            if (err) {
+                errorHandler(node, err, 'Not able to launch YoutubeMediaReceiver');
+            }
+            try {
+                checkOptions(options)
+                if (media.videoId) {
+                    media.contentId = videoId;
+                }
+                if (node) {
+                    node.debug('experimental implementation playing youtube videos media=\'' + JSON.stringify(media) + '\'');
+                }
+                player.load(media.contentId, (err) => {
+                    if (err) {
+                        errorHandler(node, err, 'Not able to load youtube video', 'error load youtube video');
+                    }
+                    client.close();
+                });
+            } catch (err) {
+                errorHandler(node, err, 'Exception occured on load youtube video', 'exception load youtube video');
+            }
+        });
+    }
+
+    const launchDefCallback = function () {
         client.launch(DefaultMediaReceiver, (err, player) => {
             if (err) {
                 errorHandler(node, err, 'Not able to launch DefaultMediaReceiver');
@@ -321,8 +348,10 @@ status of a playing audio stream:
         if ((typeof options.status !== 'undefined' && options.status === true) || 
             (typeof media === 'undefined') || (media == null)) {
             client.connect(options.ip, statusCallback);
+        } else if (media.contentType.indexOf('youtube') !== -1) {
+            client.connect(options.ip, launchYTCallback);
         } else {
-            client.connect(options.ip, connectedCallback);
+            client.connect(options.ip, launchDefCallback);
         }
     } else {
         if (node) {
@@ -331,8 +360,10 @@ status of a playing audio stream:
         if ((typeof options.status !== 'undefined' && options.status === true) || 
             (typeof media === 'undefined') || (media == null)) {
             client.connect(options.ip, options.port, statusCallback);
+        } else if (media.contentType.indexOf('youtube') !== -1) {
+            client.connect(options.ip, options.port, launchYTCallback);
         } else {
-            client.connect(options.ip, options.port, connectedCallback);
+            client.connect(options.ip, options.port, launchDefCallback);
         }
     }
 };
