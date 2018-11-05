@@ -18,12 +18,14 @@
       "name": "Stephen Keep",
       "email": "stephenkeep@gmail.com",
       "url": "https://github.com/stephenkeep"
-    }, {
+    },
+    {
       "name": "Hypnos3",
       "url": "https://github.com/hypnos3"
-    }, {
+    },
+    {
       "name": "Paul-Reed",
-      "url" : "https://github.com/Paul-Reed"
+      "url": "https://github.com/Paul-Reed"
     }
   ],
   "keywords": [
@@ -34,18 +36,20 @@
     "googlehome",
     "cast-to-client"
   ],
-  "homepage":"https://github.com/Hypnos3/node-red-contrib-cast",
+  "homepage": "https://github.com/Hypnos3/node-red-contrib-cast",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/Hypnos3/node-red-contrib-cast"
   },
-  "bugs":{
-    "url" : "https://github.com/Hypnos3/node-red-contrib-cast/issues"
+  "bugs": {
+    "url": "https://github.com/Hypnos3/node-red-contrib-cast/issues"
   },
   "dependencies": {
-    "castv2-client": ">=1.2.0",
-    "google-tts-api" : ">=0.0.3"
+    "castv2-client": "^1.2.0",
+    "google-tts-api": ">=0.0.3",
+    "q": "^1.5.1",
+    "youtube-castv2-client": "0.0.1"
   },
   "node-red": {
     "nodes": {
