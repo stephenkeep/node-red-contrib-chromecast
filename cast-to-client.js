@@ -49,6 +49,78 @@ const errorHandler = function (node, err, messageText, stateText) {
     return false;
 };
 
+const getContentType = function(data, node, fileName){
+  //node property wins!
+  if(data.contentType){
+    return data.contentType;
+  }
+
+  if(!fileName){
+    fileName = data.url;
+  }
+
+  var contentType;
+  if(fileName){
+    var contentTypeMap = {
+      'youtube' : 'youtube/video',
+      'mp3' : 'audio/mp3',
+      'mp4' : 'audio/mp4',
+      'mid' : 'audio/mid',
+      'rmi' : 'audio/mid',
+      'aif' : 'audio/x-aiff',
+      'm3u' : 'audio/x-mpegurl',
+      'ogg' : 'audio/ogg',
+      'wav' : 'audio/vnd.wav',
+      'flv' : 'video/x-flv',
+      'm3u8' : 'application/x-mpegURL',
+      '3gp' : 'video/3gpp',
+      'mov' : 'video/quicktime',
+      'avi' : 'video/x-msvideo',
+      'wmv' : 'video/x-ms-wmv',
+      'ra' : 'audio/vnd.rn-realaudio'
+    };
+
+    var ext = fileName.split('.')[fileName.split('.').length-1];
+    contentType = contentTypeMap[ext];
+    node.debug('contentType for ext '+ext + ' is '+contentType + + '('+fileName+')');
+  }
+  if (!contentType) {
+      node.warn('No contentType given!, using "audio/basic" which is maybe wrong! ('+fileName+')');
+      contentType = 'audio/basic';
+  }
+
+  return contentType;
+};
+
+const addGenericMetadata = function(media, imageUrl, contentTitle){
+  if(!contentTitle){
+    //default from url
+    contentTitle = media.contentId;
+    if(contentTitle.indexOf('/') > -1){
+      try {
+        var paths = contentTitle.split('/');
+        if(paths.length>2){
+          paths = paths.slice(paths.length-2,paths.length);
+        }
+        contentTitle = paths.join(' - ');
+      } catch (e) {
+      }
+    }
+  }
+  if(!imageUrl){
+    imageUrl = media.imageUrl || 'https://nodered.org/node-red-icon.png';
+  }
+
+  media.metadata = {
+    type: 0,
+    metadataType: 0,
+    title: contentTitle,
+    images: [
+      { url: imageUrl}
+    ]
+  };
+};
+
 const getSpeechUrl = function (node, text, language, options, callback) {
     googletts(text, language, 1).then((url) => {
         if (node) {
@@ -82,7 +154,7 @@ const doCast = function (node, media, options, callbackResult) {
     const onClose = function () {
         if (node) {
             node.debug('Player Close');
-        }         
+        }
         client.close();
         /*reconnect(function(newclient, newplayer) {
             chcClient = newclient;
@@ -191,7 +263,7 @@ const doCast = function (node, media, options, callbackResult) {
                     });
                 }
             });
-        }        
+        }
     }
 
     /*
@@ -219,7 +291,7 @@ status of a playing audio stream:
                         } else {
                             if (node) {
                                 node.debug('session joined ...');
-                            }                        
+                            }
                             player.on('status', onStatus);
                             player.on('close', onClose);
 
@@ -240,7 +312,7 @@ status of a playing audio stream:
                     errorHandler(node, err, 'Exception occured on load media', 'exception load media');
                 }
             }
-        });        
+        });
     }
 
     const connectedCallback = function () {
@@ -268,6 +340,9 @@ status of a playing audio stream:
                     if (node) {
                         node.debug('loading player with media=\'' + JSON.stringify(media) + '\'');
                     }
+
+                    addGenericMetadata(media);
+
                     player.load(media, {
                         autoplay: true
                     }, (err, status) => {
@@ -304,7 +379,88 @@ status of a playing audio stream:
                         client.close();
                     });
                 }
-                
+
+            } catch (err) {
+                errorHandler(node, err, 'Exception occured on load media', 'exception load media');
+            }
+        });
+    };
+
+    const launchQueueCallback = function () {
+        client.launch(DefaultMediaReceiver, (err, player) => {
+            if (err) {
+                errorHandler(node, err, 'Not able to launch DefaultMediaReceiver');
+            }
+
+           player.on('status', function(status) {
+               node.debug('QUEUE STATUS '+ JSON.stringify(status) );
+           });
+
+            try {
+                checkOptions(options);
+
+                if (media != null &&
+                    typeof media !== 'undefined' &&
+                    typeof media === 'object' &&
+                    typeof media.mediaList !== 'undefined') {
+
+                    if (node) {
+                        node.log('loading player with queue= ' + media.mediaList.length+ " items");
+                        node.debug('queue data=\'' + JSON.stringify(media) + '\'');
+                    }
+
+                   for (var i = 0; i < media.mediaList.length; i++) {
+                     addGenericMetadata(media.mediaList[i].media, media.imageUrl);
+                   }
+
+                   player.queueLoad(
+                     media.mediaList,
+                     {
+                       startIndex:1,
+                       repeatMode: "REPEAT_OFF"
+                     },
+                     function(err, status) {
+                       node.log("Loaded QUEUE of "+media.mediaList.length+ " items");
+          
+                       if (err) {
+                           errorHandler(node, err, 'Not able to load media', 'error load media');
+                       } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
+                           if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
+                               if (node) {
+                                   node.debug('seek to position ' + String(options.seek));
+                               }
+                               player.seek(options.seek, function (err, status) {
+                                   if (err) {
+                                       errorHandler(node, err, 'Not able to seek to position ' + String(options.seek));
+                                   } else {
+                                       callbackResult(status, options);
+                                   }
+                               });
+                           }
+                       } else {
+                           callbackResult(status, options);
+                       }
+                       client.close();
+
+
+                       }
+                   );
+
+
+                } else {
+                    if (node) {
+                        node.debug('get Status from player');
+                    }
+                    client.getStatus(function (err, status) {
+                        if (err) {
+                            errorHandler(node, err, 'Not able to get status');
+                        } else {
+                            callbackResult(status, options);
+                        }
+                        client.close();
+                    });
+                }
+
             } catch (err) {
                 errorHandler(node, err, 'Exception occured on load media', 'exception load media');
             }
@@ -318,9 +474,11 @@ status of a playing audio stream:
         if (node) {
             node.debug('connect to client ip=\'' + options.ip + '\'');
         }
-        if ((typeof options.status !== 'undefined' && options.status === true) || 
+        if ((typeof options.status !== 'undefined' && options.status === true) ||
             (typeof media === 'undefined') || (media == null)) {
             client.connect(options.ip, statusCallback);
+        } else if (media.mediaList && media.mediaList.length > 0) {
+            client.connect(options.ip, launchQueueCallback);
         } else {
             client.connect(options.ip, connectedCallback);
         }
@@ -328,9 +486,11 @@ status of a playing audio stream:
         if (node) {
             node.debug('connect to client ip=\'' + options.ip + '\' port=\'' + options.port + '\'');
         }
-        if ((typeof options.status !== 'undefined' && options.status === true) || 
+        if ((typeof options.status !== 'undefined' && options.status === true) ||
             (typeof media === 'undefined') || (media == null)) {
             client.connect(options.ip, options.port, statusCallback);
+        } else if (media.mediaList && media.mediaList.length > 0) {
+            client.connect(options.ip, launchQueueCallback);
         } else {
             client.connect(options.ip, options.port, connectedCallback);
         }
@@ -378,7 +538,7 @@ module.exports = function (RED) {
              * versenden:
              *********************************************/
             //var creds = RED.nodes.getNode(config.creds); - not used
-            let attrs = ['media', 'url', 'contentType', 'streamType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
+            let attrs = ['media', 'url', 'urlList', 'imageUrl', 'contentType', 'streamType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
 
             var data = {};
             for (let attr of attrs) {
@@ -447,48 +607,38 @@ module.exports = function (RED) {
                 data.url != null) {
                 this.debug('initialize playing url=\'' + data.url + '\' of contentType=\'' + data.contentType + '\'');
 
-                if (typeof data.contentType !== 'string' ||
-                    data.contentType == '') {
-                    if (data.url.indexOf('youtube') !== -1) {
-                        data.contentType = 'youtube/video';
-                    } else if (data.url.indexOf('.mp3') !== -1) {
-                        data.contentType = 'audio/mp3';
-                    } else  if (data.url.indexOf('.mp4') !== -1) {
-                        data.contentType = 'audio/mp4';
-                    } else  if (data.url.indexOf('.mid') !== -1) {
-                        data.contentType = 'audio/mid';
-                    } else  if (data.url.indexOf('.rmi') !== -1) {
-                        data.contentType = 'audio/mid';
-                    } else  if (data.url.indexOf('.aif') !== -1) {
-                        data.contentType = 'audio/x-aiff';
-                    } else  if (data.url.indexOf('.m3u') !== -1) {
-                        data.contentType = 'audio/x-mpegurl';
-                    } else  if (data.url.indexOf('.ogg') !== -1) {
-                        data.contentType = 'audio/ogg';
-                    } else  if (data.url.indexOf('.wav') !== -1) {
-                        data.contentType = 'audio/vnd.wav';
-                    } else  if (data.url.indexOf('.flv') !== -1) {
-                        data.contentType = 'video/x-flv';
-                    } else  if (data.url.indexOf('.m3u8') !== -1) {
-                        data.contentType = 'application/x-mpegURL';
-                    } else  if (data.url.indexOf('.3gp') !== -1) {
-                        data.contentType = 'video/3gpp';
-                    } else  if (data.url.indexOf('.mov') !== -1) {
-                        data.contentType = 'video/quicktime';
-                    } else  if (data.url.indexOf('.avi') !== -1) {
-                        data.contentType = 'video/x-msvideo';
-                    } else  if (data.url.indexOf('.wmv') !== -1) {
-                        data.contentType = 'video/x-ms-wmv';
-                    } else  if (data.url.indexOf('.ra') !== -1) {
-                        data.contentType = 'audio/vnd.rn-realaudio';
-                    } else {
-                        this.warn('No contentType given!, using "audio/basic" which is maybe wrong!');
-                        data.contentType = 'audio/basic';
-                    }
+                if (typeof data.contentType !== 'string' || data.contentType == '') {
+                    data.contentType = getContentType(data, this);
                 }
                 data.media = {
                     contentId: data.url,
                     contentType: data.contentType
+                }
+            }else if (typeof data.urlList !== 'undefined' && data.urlList.length>0) {
+                //if is a list of files
+                this.debug('initialize playing queue=\'' + data.urlList.length );
+
+                data.media = {}
+                data.media.mediaList = [];
+
+                var listSize = data.urlList.length;
+                for (var i = 0; i < listSize; i++) {
+                  var item = data.urlList[i];
+
+                  var contentType = getContentType(data, this, item);
+                  var mediaItem = {
+                    autoplay : true,
+                    preloadTime : listSize,
+                    startTime : i+1,
+                    activeTrackIds : [],
+                    playbackDuration: 2,
+                    media: {
+                      contentId: item,
+                      contentType: contentType,
+                      streamType: 'BUFFERED'
+                    }
+                  };
+                  data.media.mediaList.push(mediaItem);
                 }
             }
 
@@ -508,6 +658,10 @@ module.exports = function (RED) {
                 if (typeof data.duration !== 'undefined' &&
                     !isNaN(data.duration)) {
                     data.media.duration = data.duration;
+                }
+
+                if (typeof data.imageUrl !== 'undefined' && data.imageUrl != null) {
+                    data.media.imageUrl = data.imageUrl;
                 }
             }
 
@@ -540,7 +694,7 @@ module.exports = function (RED) {
                                         shape: 'dot',
                                         text: 'ok'
                                     });
-                                    this.send(msg);
+                              this.send(msg);
                                 });
                             }, data2.delay, data2);
                             return null;
