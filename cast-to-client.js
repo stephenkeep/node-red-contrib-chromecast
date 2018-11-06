@@ -92,7 +92,7 @@ const getContentType = function(data, node, fileName){
   return contentType;
 };
 
-const addGenericMetadata = function(media, contentTitle, imageUrl){
+const addGenericMetadata = function(media, imageUrl, contentTitle){
   if(!contentTitle){
     //default from url
     contentTitle = media.contentId;
@@ -108,7 +108,7 @@ const addGenericMetadata = function(media, contentTitle, imageUrl){
     }
   }
   if(!imageUrl){
-    imageUrl = 'https://nodered.org/node-red-icon.png';
+    imageUrl = media.imageUrl || 'https://nodered.org/node-red-icon.png';
   }
 
   media.metadata = {
@@ -410,7 +410,7 @@ status of a playing audio stream:
                     }
 
                    for (var i = 0; i < media.mediaList.length; i++) {
-                     addGenericMetadata(media.mediaList[i].media);
+                     addGenericMetadata(media.mediaList[i].media, media.imageUrl);
                    }
 
                    player.queueLoad(
@@ -538,7 +538,7 @@ module.exports = function (RED) {
              * versenden:
              *********************************************/
             //var creds = RED.nodes.getNode(config.creds); - not used
-            let attrs = ['media', 'url', 'urlList', 'contentType', 'streamType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
+            let attrs = ['media', 'url', 'urlList', 'imageUrl', 'contentType', 'streamType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
 
             var data = {};
             for (let attr of attrs) {
@@ -658,6 +658,10 @@ module.exports = function (RED) {
                 if (typeof data.duration !== 'undefined' &&
                     !isNaN(data.duration)) {
                     data.media.duration = data.duration;
+                }
+
+                if (typeof data.imageUrl !== 'undefined' && data.imageUrl != null) {
+                    data.media.imageUrl = data.imageUrl;
                 }
             }
 
