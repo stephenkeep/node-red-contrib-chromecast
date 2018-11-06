@@ -49,6 +49,35 @@ const errorHandler = function (node, err, messageText, stateText) {
     return false;
 };
 
+const addGenericMetadata = function(media, contentTitle, imageUrl){
+  if(!contentTitle){
+    //default from url
+    contentTitle = media.contentId;
+    if(contentTitle.indexOf('/') > -1){
+      try {
+        var paths = contentTitle.split('/');
+        if(paths.length>2){
+          paths = paths.slice(paths.length-2,paths.length);
+        }
+        contentTitle = paths.join(' - ');
+      } catch (e) {
+      }
+    }
+  }
+  if(!imageUrl){
+    imageUrl = 'https://nodered.org/node-red-icon.png';
+  }
+
+  media.metadata = {
+    type: 0,
+    metadataType: 0,
+    title: contentTitle,
+    images: [
+      { url: imageUrl}
+    ]
+  };
+};
+
 const getSpeechUrl = function (node, text, language, options, callback) {
     googletts(text, language, 1).then((url) => {
         if (node) {
@@ -268,6 +297,9 @@ status of a playing audio stream:
                     if (node) {
                         node.debug('loading player with media=\'' + JSON.stringify(media) + '\'');
                     }
+
+                    addGenericMetadata(media);
+
                     player.load(media, {
                         autoplay: true
                     }, (err, status) => {
