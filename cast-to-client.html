@@ -49,6 +49,7 @@
 
     <div class="form-tips"><b>Tip:</b> You can also define all properties as part of the incomming message. This would be used priorized than the settings here.<br />
         <code>msg.url</code> or <code>msg.payload.url</code><br />
+        <code>msg.urlList</code> / <code>msg.payload.urlList</code><br />
         <code>msg.contentType</code> / <code>msg.payload.contentType</code><br />
         <code>msg.message</code> / <code>msg.payload.message</code><br />
         <code>msg.language</code> / <code>msg.payload.language</code><br />
@@ -121,6 +122,9 @@
          <li>play a media file<br />
          For this the url and the content type needs to be specified. Thus can
          be done in the configuration or passed as a message property <code>msg.url</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.url</code> and <code>msg.payload.contentType</code><br /></li>
+         <li>play a queue of media file<br />
+         For this the urlList and the content type needs to be specified. Thus can
+         be done in the configuration or passed as a message property <code>msg.urlList</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.urlList</code> and <code>msg.payload.contentType</code><br /></li>
          <li>speak a given message, converted by google tts<br />
          For this the message needs to be specified. Thus can
          be done in the configuration or pass as a message property <code>msg.message</code> or give a payload object with the property <code>msg.payload.message</code></li>
