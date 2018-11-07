@@ -19,7 +19,7 @@
     </div>
     <div class="form-row">
         <label for="node-input-port">Port</label>
-        <input type="text" id="node-input-port" placeholder="8009">
+        <input type="text" id="node-input-port" placeholder="(optional) 8009">
     </div>
 
     <div class="form-row">
@@ -49,7 +49,7 @@
 
     <div class="form-row">
         <label for="node-input-volume"><i class="fa fa-volume-up"></i> Volume</label>
-        <input type="number" id="node-input-volume" placeholder="0-100">
+        <input type="number" id="node-input-volume" placeholder="(optional) 0-100">
     </div>
 
     <div class="form-tips"><b>Tip:</b> You can also define all properties as part of the incomming message. This would be used priorized than the settings here.<br />
@@ -87,7 +87,7 @@
         <dt>url <span class="property-type">string</span></dt>
         <dd> url to a media file which should be cast to the cast device. For a chromecast this should be a media or a video file. For a Google Home device without a display this could only be an audio file.</dd>
 
-        <dt>imageUrl <span class="property-type">string</span></dt>
+        <dt class="optional">imageUrl <span class="property-type">string</span></dt>
         <dd> url to a image file which represents the artwork for the url which should be cast to the cast device. For a chromecast this should be an image file. For a Google Home device without a display this is irrelevant.</dd>
 
         <dt>contentType <span class="property-type">string</span></dt>
@@ -159,57 +159,59 @@
         category: 'function',
         defaults: {
             name: {
-                value:"",
+                value: "",
                 required: false
             },
             url: {
-                value:null,
+                value: null,
                 required: false
             },
             contentType: {
-                value:"",
+                value: "",
                 required: false
             },
             message: {
-                value:null,
+                value: null,
                 required: false
             },
             language: {
-                value:"en",
+                value: "en",
                 required: false
             },
             ip: {
-                value:"",
+                value: "",
                 required: false,
-                validate: RED.validators.regex(/^(\s*|(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$/)
+                validate: RED.validators.regex(
+                    /^(\s*|(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$/
+                )
             },
             port: {
-                value:"",
+                value: "",
                 required: false,
                 validate: RED.validators.regex(/^(\s*|\d+)$/) //RED.validators.number() does'n work, because can be empty
             },
             volume: {
-                value:null,
+                value: null,
                 required: false,
-                validate:function(v) {
-                        if (!v) {
-                            return true; //empty
-                        } else if (/^\d+$/.test(v)) {
-                            return (parseInt(v) >= 0 && parseInt(v) <= 100);
-                        }
-                        return false;
+                validate: function (v) {
+                    if (!v) {
+                        return true; //empty
+                    } else if (/^\d+$/.test(v)) {
+                        return (parseInt(v) >= 0 && parseInt(v) <= 100);
+                    }
+                    return false;
                 }
             }
         },
-        inputs:1,               // set the number of inputs - only 0 or 1
-        outputs:1,              // set the number of outputs - 0 to n
-        icon: "default.png",     // saved in  icons/myicon.png - myicon.png
+        inputs: 1, // set the number of inputs - only 0 or 1
+        outputs: 1, // set the number of outputs - 0 to n
+        icon: "default.png", // saved in  icons/myicon.png - myicon.png
         color: "#FFFF00",
-        label: function() {
+        label: function () {
             return this.name || "Cast";
         },
-        labelStyle: function() {
-            return this.name?"node_label_italic":"";
+        labelStyle: function () {
+            return this.name ? "node_label_italic" : "";
         },
         paletteLabel: "Cast"
     });

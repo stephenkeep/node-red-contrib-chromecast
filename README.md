@@ -39,9 +39,7 @@ Simple flow that sends an text to Google TTS and the result to a the chromecast 
 
 ### play a video on chromecast
 
-
     [{"id":"443984d.4919a7c","type":"cast-to-client","z":"c4dd07cf.84ae98","name":"","url":"","contentType":"","message":"","language":"de","ip":"192.168.1.125","port":"","volume":"","x":490,"y":840,"wires":[["cad88339.e69ff"]]},{"id":"cc601032.ef8b9","type":"inject","z":"c4dd07cf.84ae98","name":"","topic":"","payload":"youtube","payloadType":"str","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":110,"y":840,"wires":[["62aea8fa.99c718"]]},{"id":"cad88339.e69ff","type":"debug","z":"c4dd07cf.84ae98","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":710,"y":840,"wires":[]},{"id":"62aea8fa.99c718","type":"change","z":"c4dd07cf.84ae98","name":"","rules":[{"t":"set","p":"url","pt":"msg","to":"http://commondatastorage.googleapis.com/gtv-videos-bucket/big_buck_bunny_1080p.mp4","tot":"str"},{"t":"set","p":"contentType","pt":"msg","to":"video/mp4","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":300,"y":840,"wires":[["443984d.4919a7c"]]}]
-
 
 ### get status of a cast device
 
@@ -180,6 +178,8 @@ Options for the incomming message object:
 - **Port**, `msg.port` or `msg.payload.port` the port of the device (if not given default <code>8009</code> will be used).
 - **Media Url**, `msg.url` or `msg.payload.url` url to a media file which should be cast to the cast device. For a chromecast this chould be a media or a viideo file. For a Google Home device without a display this could only a audio file.
 - **Media Type**, `msg.contentType` or `msg.payload.contentType` the content type (mime type) of the file in the url. This property is required if a url is given. Could also be defined in the configuration of the node.
+- **Media Type**, `msg.contentType` or `msg.payload.contentType` the content type (mime type) of the file in the url. This property is required if a url is given. Could also be defined in the configuration of the node.
+- **Image Url**, `msg.imageUrl` or `msg.payload.imageUrl` url to a image file which represents the artwork for the url which should be cast to the cast device. For a chromecast this should be an image file. For a Google Home device without a display this is irrelevant.
 - **Message**, `msg.message` or `msg.payload.message` a text which should be send to the google tts engine to convert to a mp3 file.
 - **Language**, `msg.language` or `msg.payload.language` the language which should be used for conveting the message to the media file.
 - **Volume**, `msg.volume` or `msg.payload.volume` the volume should be set.
@@ -199,23 +199,25 @@ So the config can be at 3 places. The config of the node, a property of the `msg
     - _(3rd)_ otherwise if in the configuration the **Media Url** property is set this url will be used.
 
 ### Media Types
+
 Common Video File MIME Types are:
 
-Video Type | Extension | MIME Type
--- | -- | --
-Flash | .flv | video/x-flv
-MPEG-4 | .mp4 | video/mp4
-iPhone Index | .m3u8 | application/x-mpegURL
-iPhone Segment | .ts | video/MP2T
-3GP Mobile | .3gp | video/3gpp
-QuickTime | .mov | video/quicktime
-A/V Interleave | .avi | video/x-msvideo
-Windows Media | .wmv | video/x-ms-wmv
+| Video Type     | Extension | MIME Type             |
+| -------------- | --------- | --------------------- |
+| Flash          | .flv      | video/x-flv           |
+| MPEG-4         | .mp4      | video/mp4             |
+| iPhone Index   | .m3u8     | application/x-mpegURL |
+| iPhone Segment | .ts       | video/MP2T            |
+| 3GP Mobile     | .3gp      | video/3gpp            |
+| QuickTime      | .mov      | video/quicktime       |
+| A/V Interleave | .avi      | video/x-msvideo       |
+| Windows Media  | .wmv      | video/x-ms-wmv        |
 
 Common Audio File MIME Types are:
 
-File Extension | MIME Type
--- | -- 
+| File Extension | MIME Type |
+| -------------- | --------- |
+
 
 au | audio/basic
 snd | audio/basic
@@ -223,8 +225,8 @@ Linear PCM | auido/L24
 mid | audio/mid
 rmi | audio/mid
 mp3 | audio/mp3
-mp4 audio | audio/mp4  
-aif | audio/x-aiff  
+mp4 audio | audio/mp4
+aif | audio/x-aiff
 aifc | audio/x-aiff
 aiff | audio/x-aiff
 m3u | audio/x-mpegurl
@@ -288,4 +290,3 @@ Npm pakage:
 https://www.npmjs.com/package/node-red-contrib-cast
 Node-Red:
 https://flows.nodered.org/node/node-red-contrib-cast
-
