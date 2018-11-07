@@ -1,7 +1,6 @@
 # node-red-contrib-cast for NodeRED
 
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/hypnos3/node-red-contrib-cast/graphs/commit-activity)
-[![GitHub version](https://badge.fury.io/gh/Hypnos3%2Fnode-red-contrib-cast.svg)](https://github.com/hypnos3/node-red-contrib-cast)
 [![NPM version](https://badge.fury.io/js/node-red-contrib-cast.svg)](http://badge.fury.io/js/node-red-contrib-cast)
 [![HitCount](http://hits.dwyl.io/hypnos3/node-red-contrib-cast.svg)](http://hits.dwyl.io/hypnos3/node-red-contrib-cast)
 [![Dependencies Status](https://david-dm.org/hypnos3/node-red-contrib-cast/status.svg)](https://david-dm.org/hypnos3/node-red-contrib-cast)
