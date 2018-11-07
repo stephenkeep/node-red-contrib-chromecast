@@ -1,18 +1,4 @@
 <script type="text/x-red" data-template-name="cast-to-client">
-    <!--
-        <div class="form-row">
-            <label for="node-input-creds">Credentials</label>
-            <input type="text" id="node-input-creds">
-        </div>
-    -->
-
-    <!-- By convention, most nodes have a 'name' property. The following div -->
-    <!-- provides the necessary field. Should always be the last option      -->
-    <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="Name of this Event">
-    </div>
-
     <div class="form-row">
         <label for="node-input-ip"><i class="fa fa-google"></i> IP</label>
         <input type="text" id="node-input-ip" placeholder="0.0.0.0">
@@ -22,14 +8,10 @@
         <input type="text" id="node-input-port" placeholder="(optional) 8009">
     </div>
 
+    <hr>
     <div class="form-row">
         <label for="node-input-url"><i class="fa fa-file-audio-o"></i> Media Url</label>
         <input type="text" id="node-input-url" placeholder="(optional) Media Url">
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-imageUrl"><i class="fa fa-picture-o"></i> Image Url</label>
-        <input type="text" id="node-input-imageUrl" placeholder="(optional) Image Url (metadata)">
     </div>
 
     <div class="form-row">
@@ -37,6 +19,12 @@
         <input type="text" id="node-input-contentType" placeholder="audio/basic">
     </div>
 
+    <div class="form-row">
+        <label for="node-input-imageUrl"><i class="fa fa-picture-o"></i> Image Url</label>
+        <input type="text" id="node-input-imageUrl" placeholder="(optional) Image Url (metadata)">
+    </div>
+
+    <hr>
     <div class="form-row">
         <label for="node-input-message"><i class="fa fa-commenting-o"></i> Message</label>
         <input type="text" id="node-input-message" placeholder="(optional) Text to speach">
@@ -47,21 +35,30 @@
         <input type="text" id="node-input-language" placeholder="en">
     </div>
 
+    <hr>
     <div class="form-row">
         <label for="node-input-volume"><i class="fa fa-volume-up"></i> Volume</label>
-        <input type="number" id="node-input-volume" placeholder="(optional) 0-100">
+        <input type="text" id="node-input-volume" class="cast-volume" placeholder="(optional) 0-100">
     </div>
 
     <div class="form-tips"><b>Tip:</b> You can also define all properties as part of the incomming message. This would be used priorized than the settings here.<br />
         <code>msg.url</code> or <code>msg.payload.url</code><br />
         <code>msg.urlList</code> / <code>msg.payload.urlList</code><br />
-        <code>msg.imageUrl</code> / <code>msg.payload.imageUrl</code><br />
         <code>msg.contentType</code> / <code>msg.payload.contentType</code><br />
+        <code>msg.imageUrl</code> / <code>msg.payload.imageUrl</code><br />
         <code>msg.message</code> / <code>msg.payload.message</code><br />
         <code>msg.language</code> / <code>msg.payload.language</code><br />
         <code>msg.ip</code> / <code>msg.payload.ip</code> the IP address of the device to cast<br />
         <code>msg.port</code> / <code>msg.payload.port</code> the port of the device (if not given default <code>8009</code> will be used)<br />
         <code>msg.volume</code> / <code>msg.payload.volume</code> (optional) a number 0-100 whhere the volume should be set<br />
+    </div>
+
+    <hr>
+    <!-- By convention, most nodes have a 'name' property. The following div -->
+    <!-- provides the necessary field. Should always be the last option      -->
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name of this Event">
     </div>
 </script>
 
@@ -176,19 +173,29 @@
             },
             language: {
                 value: "en",
-                required: false
+                required: false,
+                validate: function (v) {
+                    return RED.validators.regex(/^[a-zA-Z]{2,4}(-[a-zA-Z0-9]{2,5}(-[a-zA-Z0-9]{2,5})?)?$/)(
+                        v) || (v === '');
+                    //we are allow a little more characters as currently used in language codes to be save for future changes
+                }
             },
             ip: {
                 value: "",
                 required: false,
-                validate: RED.validators.regex(
-                    /^(\s*|(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$/
-                )
+                validate: function (v) {
+                    return RED.validators.regex(
+                        /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+                    )(v) || (v === '');
+                }
             },
             port: {
                 value: "",
                 required: false,
-                validate: RED.validators.regex(/^(\s*|\d+)$/) //RED.validators.number() does'n work, because can be empty
+                validate: function (v) {
+                    return RED.validators.number()(v) || (v === '');
+                    //RED.validators.regex(/^(\s*|\d+)$/) does'n work, because can be empty
+                }
             },
             volume: {
                 value: null,
@@ -213,6 +220,12 @@
         labelStyle: function () {
             return this.name ? "node_label_italic" : "";
         },
-        paletteLabel: "Cast"
+        paletteLabel: "Cast",
+        oneditprepare: function () {
+            $(".cast-volume").spinner({
+                max: 100,
+                min: 0
+            });
+        }
     });
 </script>
