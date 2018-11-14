@@ -37,7 +37,10 @@
     "contrib-chromecast",
     "chromecast",
     "googlehome",
-    "cast-to-client"
+    "cast-to-client",
+    "youtube",
+    "chromecast",
+    "castv2"
   ],
   "homepage": "https://github.com/Hypnos3/node-red-contrib-cast",
   "license": "Apache-2.0",
@@ -52,7 +55,8 @@
     "castv2-client": "^1.2.0",
     "google-tts-api": ">=0.0.3",
     "q": "^1.5.1",
-    "youtube-castv2-client": "0.0.1"
+    "lodash": "^4.17.4",
+    "needle": "^1.6.0"
   },
   "node-red": {
     "nodes": {

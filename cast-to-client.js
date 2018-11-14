@@ -3,7 +3,10 @@
  *********************************************/
 const Client = require('castv2-client').Client;
 const DefaultMediaReceiver = require('castv2-client').DefaultMediaReceiver;
-const YoutubeMediaReceiver = require('youtube-castv2-client').Youtube;
+const path = require('path');
+const YoutubeMediaReceiver = require(path.join(__dirname, '/lib/Youtube.js')).Youtube;
+
+//const YoutubeMediaReceiver = require('youtube-castv2-client').Youtube;
 //const YoutubeMediaReceiver = require('castv2-youtube').Youtube;;
 const googletts = require('google-tts-api');
 
@@ -51,76 +54,75 @@ const errorHandler = function (node, err, messageText, stateText) {
     return false;
 };
 
-const getContentType = function(data, node, fileName){
-  //node property wins!
-  if(data.contentType){
-    return data.contentType;
-  }
+const getContentType = function (data, node, fileName) {
+    //node property wins!
+    if (data.contentType) {
+        return data.contentType;
+    }
 
-  if(!fileName){
-    fileName = data.url;
-  }
+    if (!fileName) {
+        fileName = data.url;
+    }
 
-  var contentType;
-  if(fileName){
-    var contentTypeMap = {
-      'youtube' : 'youtube/video',
-      'mp3' : 'audio/mp3',
-      'mp4' : 'audio/mp4',
-      'mid' : 'audio/mid',
-      'rmi' : 'audio/mid',
-      'aif' : 'audio/x-aiff',
-      'm3u' : 'audio/x-mpegurl',
-      'ogg' : 'audio/ogg',
-      'wav' : 'audio/vnd.wav',
-      'flv' : 'video/x-flv',
-      'm3u8' : 'application/x-mpegURL',
-      '3gp' : 'video/3gpp',
-      'mov' : 'video/quicktime',
-      'avi' : 'video/x-msvideo',
-      'wmv' : 'video/x-ms-wmv',
-      'ra' : 'audio/vnd.rn-realaudio'
-    };
+    var contentType;
+    if (fileName) {
+        var contentTypeMap = {
+            'youtube': 'youtube/video',
+            'mp3': 'audio/mp3',
+            'mp4': 'audio/mp4',
+            'mid': 'audio/mid',
+            'rmi': 'audio/mid',
+            'aif': 'audio/x-aiff',
+            'm3u': 'audio/x-mpegurl',
+            'ogg': 'audio/ogg',
+            'wav': 'audio/vnd.wav',
+            'flv': 'video/x-flv',
+            'm3u8': 'application/x-mpegURL',
+            '3gp': 'video/3gpp',
+            'mov': 'video/quicktime',
+            'avi': 'video/x-msvideo',
+            'wmv': 'video/x-ms-wmv',
+            'ra': 'audio/vnd.rn-realaudio'
+        };
 
-    var ext = fileName.split('.')[fileName.split('.').length-1];
-    contentType = contentTypeMap[ext];
-    node.debug('contentType for ext '+ext + ' is '+contentType + + '('+fileName+')');
-  }
-  if (!contentType) {
-      node.warn('No contentType given!, using "audio/basic" which is maybe wrong! ('+fileName+')');
-      contentType = 'audio/basic';
-  }
+        var ext = fileName.split('.')[fileName.split('.').length - 1];
+        contentType = contentTypeMap[ext];
+        node.debug('contentType for ext ' + ext + ' is ' + contentType + +'(' + fileName + ')');
+    }
+    if (!contentType) {
+        node.warn('No contentType given!, using "audio/basic" which is maybe wrong! (' + fileName + ')');
+        contentType = 'audio/basic';
+    }
 
-  return contentType;
+    return contentType;
 };
 
-const addGenericMetadata = function(media, imageUrl, contentTitle){
-  if(!contentTitle){
-    //default from url
-    contentTitle = media.contentId;
-    if(contentTitle.indexOf('/') > -1){
-      try {
-        var paths = contentTitle.split('/');
-        if(paths.length>2){
-          paths = paths.slice(paths.length-2,paths.length);
+const addGenericMetadata = function (media, imageUrl, contentTitle) {
+    if (!contentTitle) {
+        //default from url
+        contentTitle = media.contentId;
+        if (contentTitle.indexOf('/') > -1) {
+            try {
+                var paths = contentTitle.split('/');
+                if (paths.length > 2) {
+                    paths = paths.slice(paths.length - 2, paths.length);
+                }
+                contentTitle = paths.join(' - ');
+            } catch (e) {}
         }
-        contentTitle = paths.join(' - ');
-      } catch (e) {
-      }
     }
-  }
-  if(!imageUrl){
-    imageUrl = media.imageUrl || 'https://nodered.org/node-red-icon.png';
-  }
+    if (!imageUrl) {
+        imageUrl = media.imageUrl || 'https://nodered.org/node-red-icon.png';
+    }
 
-  media.metadata = {
-    type: 0,
-    metadataType: 0,
-    title: contentTitle,
-    images: [
-      { url: imageUrl}
-    ]
-  };
+    media.metadata = {
+        type: 0,
+        metadataType: 0,
+        title: contentTitle,
+        images: [{
+            url: imageUrl
+        }]
+    };
 };
 
 const getSpeechUrl = function (node, text, language, options, callback) {
@@ -277,7 +279,7 @@ status of a playing audio stream:
     {"applications":[{"appId":"CC1AD845","displayName":"Default Media Receiver","iconUrl":"","isIdleScreen":false,"launchedFromCloud":false,"namespaces":[{"name":"urn:x-cast:com.google.cast.cac"},{"name":"urn:x-cast:com.google.cast.broadcast"},{"name":"urn:x-cast:com.google.cast.media"}],"sessionId":"7d6af4d1-eb33-4643-bcdd-6c50c79dbbce","statusText":"Default Media Receiver","transportId":"7d6af4d1-eb33-4643-bcdd-6c50c79dbbce"}],"userEq":{"high_shelf":{"frequency":4500,"gain_db":0,"quality":0.707},"low_shelf":{"frequency":150,"gain_db":0,"quality":0.707},"max_peaking_eqs":0,"peaking_eqs":[]},"volume":{"controlType":"master","level":0.2799999713897705,"muted":false,"stepInterval":0.019999999552965164}}
     /* */
     const statusCallback = function () {
-        client.getSessions(function(err, sessions) {
+        client.getSessions(function (err, sessions) {
             if (err) {
                 errorHandler(node, err, 'error getting session');
             } else {
@@ -287,7 +289,7 @@ status of a playing audio stream:
                     if (node) {
                         node.debug("session: " + JSON.stringify(sessions[0]));
                     }
-                    client.join(session, DefaultMediaReceiver, function(err, player) {
+                    client.join(session, DefaultMediaReceiver, function (err, player) {
                         if (err) {
                             errorHandler(node, err, 'error joining session');
                         } else {
@@ -318,7 +320,7 @@ status of a playing audio stream:
     }
 
     const launchYTCallback = function () {
-        client.launch(YoutubeMediaReceiver, function(err, player) {
+        client.launch(YoutubeMediaReceiver, function (err, player) {
             if (err) {
                 errorHandler(node, err, 'Not able to launch YoutubeMediaReceiver');
             }
@@ -419,9 +421,9 @@ status of a playing audio stream:
                 errorHandler(node, err, 'Not able to launch DefaultMediaReceiver');
             }
 
-           player.on('status', function(status) {
-               node.debug('QUEUE STATUS '+ JSON.stringify(status) );
-           });
+            player.on('status', function (status) {
+                node.debug('QUEUE STATUS ' + JSON.stringify(status));
+            });
 
             try {
                 checkOptions(options);
@@ -432,46 +434,45 @@ status of a playing audio stream:
                     typeof media.mediaList !== 'undefined') {
 
                     if (node) {
-                        node.log('loading player with queue= ' + media.mediaList.length+ " items");
+                        node.log('loading player with queue= ' + media.mediaList.length + " items");
                         node.debug('queue data=\'' + JSON.stringify(media) + '\'');
                     }
 
-                   for (var i = 0; i < media.mediaList.length; i++) {
-                     addGenericMetadata(media.mediaList[i].media, media.imageUrl);
-                   }
+                    for (var i = 0; i < media.mediaList.length; i++) {
+                        addGenericMetadata(media.mediaList[i].media, media.imageUrl);
+                    }
 
-                   player.queueLoad(
-                     media.mediaList,
-                     {
-                       startIndex:1,
-                       repeatMode: "REPEAT_OFF"
-                     },
-                     function(err, status) {
-                       node.log("Loaded QUEUE of "+media.mediaList.length+ " items");
-          
-                       if (err) {
-                           errorHandler(node, err, 'Not able to load media', 'error load media');
-                       } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
-                           if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
-                               if (node) {
-                                   node.debug('seek to position ' + String(options.seek));
-                               }
-                               player.seek(options.seek, function (err, status) {
-                                   if (err) {
-                                       errorHandler(node, err, 'Not able to seek to position ' + String(options.seek));
-                                   } else {
-                                       callbackResult(status, options);
-                                   }
-                               });
-                           }
-                       } else {
-                           callbackResult(status, options);
-                       }
-                       client.close();
+                    player.queueLoad(
+                        media.mediaList, {
+                            startIndex: 1,
+                            repeatMode: "REPEAT_OFF"
+                        },
+                        function (err, status) {
+                            node.log("Loaded QUEUE of " + media.mediaList.length + " items");
+
+                            if (err) {
+                                errorHandler(node, err, 'Not able to load media', 'error load media');
+                            } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
+                                if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
+                                    if (node) {
+                                        node.debug('seek to position ' + String(options.seek));
+                                    }
+                                    player.seek(options.seek, function (err, status) {
+                                        if (err) {
+                                            errorHandler(node, err, 'Not able to seek to position ' + String(options.seek));
+                                        } else {
+                                            callbackResult(status, options);
+                                        }
+                                    });
+                                }
+                            } else {
+                                callbackResult(status, options);
+                            }
+                            client.close();
 
 
-                       }
-                   );
+                        }
+                    );
 
 
                 } else {
@@ -645,31 +646,31 @@ module.exports = function (RED) {
                     contentId: data.url,
                     contentType: data.contentType
                 }
-            }else if (typeof data.urlList !== 'undefined' && data.urlList.length>0) {
+            } else if (typeof data.urlList !== 'undefined' && data.urlList.length > 0) {
                 //if is a list of files
-                this.debug('initialize playing queue=\'' + data.urlList.length );
+                this.debug('initialize playing queue=\'' + data.urlList.length);
 
                 data.media = {}
                 data.media.mediaList = [];
 
                 var listSize = data.urlList.length;
                 for (var i = 0; i < listSize; i++) {
-                  var item = data.urlList[i];
+                    var item = data.urlList[i];
 
-                  var contentType = getContentType(data, this, item);
-                  var mediaItem = {
-                    autoplay : true,
-                    preloadTime : listSize,
-                    startTime : i+1,
-                    activeTrackIds : [],
-                    playbackDuration: 2,
-                    media: {
-                      contentId: item,
-                      contentType: contentType,
-                      streamType: 'BUFFERED'
-                    }
-                  };
-                  data.media.mediaList.push(mediaItem);
+                    var contentType = getContentType(data, this, item);
+                    var mediaItem = {
+                        autoplay: true,
+                        preloadTime: listSize,
+                        startTime: i + 1,
+                        activeTrackIds: [],
+                        playbackDuration: 2,
+                        media: {
+                            contentId: item,
+                            contentType: contentType,
+                            streamType: 'BUFFERED'
+                        }
+                    };
+                    data.media.mediaList.push(mediaItem);
                 }
             }
 
@@ -725,7 +726,7 @@ module.exports = function (RED) {
                                         shape: 'dot',
                                         text: 'ok'
                                     });
-                              this.send(msg);
+                                    this.send(msg);
                                 });
                             }, data2.delay, data2);
                             return null;

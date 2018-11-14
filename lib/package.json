@@ -1,0 +1,26 @@
+{
+  "name": "youtube-castv2-client",
+  "version": "0.0.1",
+  "description": "youtube-castv2-client youtube sender supporting new protocol",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "youtube",
+    "chromecast",
+    "castv2"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:irfanhabib/youtube-castv2-client.git"
+  },
+  "author": "Irfan Habib",
+  "license": "MIT",
+  "dependencies": {
+    "q": "^1.5.0",
+    "castv2-client": "0.0.6",
+    "lodash": "^4.17.4",
+    "needle": "^1.4.5"
+  }
+}
