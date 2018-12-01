@@ -287,7 +287,6 @@ specific language governing permissions and limitations under the License.
 [![Greenkeeper badge](https://badges.greenkeeper.io/Hypnos3/node-red-contrib-cast.svg)](https://greenkeeper.io/)
 
 this node is published also here:
-Npm pakage:
-https://www.npmjs.com/package/node-red-contrib-cast
-Node-Red:
-https://flows.nodered.org/node/node-red-contrib-cast
+  - [NPM package](https://www.npmjs.com/package/node-red-contrib-cast)
+  - [Node-Red](https://flows.nodered.org/node/node-red-contrib-cast)
+
