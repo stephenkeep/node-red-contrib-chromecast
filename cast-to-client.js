@@ -168,18 +168,22 @@ const doCast = function(node, media, options, callbackResult) {
 
     const doSetVolume = function(volume) {
         var obj = {};
-        if (volume < 0.01) {
-            obj = {
-                muted: true
-            };
-        } else if (volume > 0.99) {
-            obj = {
-                level: 1
-            };
+        if (typeof volume === 'object') {
+            obj = volume;
         } else {
-            obj = {
-                level: volume
-            };
+            if (volume < 0.01) {
+                obj = {
+                    muted: true
+                };
+            } else if (volume > 0.99) {
+                obj = {
+                    level: 1
+                };
+            } else {
+                obj = {
+                    level: volume
+                };
+            }
         }
         node.debug('try to set volume ' + JSON.stringify(obj));
         client.setVolume(obj, function(err, newvol) {
@@ -193,6 +197,14 @@ const doCast = function(node, media, options, callbackResult) {
 
     const checkOptions = function(options) {
         node.debug('checkOptions');
+        if (typeof options.muted !== 'undefined' && options.muted != null) {
+            doSetVolume({
+                muted: (options.muted === true)
+            });
+        } else if (options.volume === 0) {
+            doSetVolume({ muted: true });
+        }
+
         if (typeof options.volume !== 'undefined' && options.volume != null) {
             doSetVolume(options.volume);
         } else if (typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
@@ -203,19 +215,13 @@ const doCast = function(node, media, options, callbackResult) {
                 } else {
                     node.debug('volume get from client ' + JSON.stringify(newvol));
                     options.oldVolume = newvol.level * 100;
-                    options.muted = (newvol.level < 0.01);
+                    //options.muted = (newvol.level < 0.01);
                     if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
                         doSetVolume(options.upperVolumeLimit);
                     } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < options.lowerVolumeLimit)) {
                         doSetVolume(options.lowerVolumeLimit);
                     }
                 }
-            });
-        }
-
-        if (typeof options.muted !== 'undefined' && options.muted != null) {
-            doSetVolume({
-                muted: (options.muted === true)
             });
         }
 
@@ -590,14 +596,14 @@ module.exports = function(RED) {
                 !isNaN(data.volume) &&
                 data.volume !== '') {
                 data.volume = parseInt(data.volume) / 100;
-            } else {
+            } else if (data.volume !== 0) {
                 delete data.volume;
             }
             if (typeof data.lowerVolumeLimit !== 'undefined' &&
                 !isNaN(data.lowerVolumeLimit) &&
                 data.lowerVolumeLimit !== '') {
                 data.lowerVolumeLimit = parseInt(data.lowerVolumeLimit) / 100;
-            } else {
+            } else if (data.lowerVolumeLimit !== 0) {
                 delete data.lowerVolumeLimit;
             }
             if (typeof data.upperVolumeLimit !== 'undefined' &&
