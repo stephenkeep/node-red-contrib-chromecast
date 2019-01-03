@@ -1,13 +1,12 @@
 /********************************************
  * cast-to-client:
  *********************************************/
+const util = require('util');
 const Client = require('castv2-client').Client;
 const DefaultMediaReceiver = require('castv2-client').DefaultMediaReceiver;
 const path = require('path');
-const YoutubeMediaReceiver = require(path.join(__dirname, '/lib/Youtube.js')).Youtube;
+//const YoutubeMediaReceiver = require(path.join(__dirname, '/lib/Youtube.js')).Youtube;
 
-//const YoutubeMediaReceiver = require('youtube-castv2-client').Youtube;
-//const YoutubeMediaReceiver = require('castv2-youtube').Youtube;;
 const googletts = require('google-tts-api');
 
 const errorHandler = function (node, err, messageText, stateText) {
@@ -78,6 +77,8 @@ const getContentType = function (data, node, fileName) {
             'wav': 'audio/vnd.wav',
             'flv': 'video/x-flv',
             'm3u8': 'application/x-mpegURL',
+            'mjpg': 'video/x-motion-jpeg',
+            'mjpeg': 'video/x-motion-jpeg',
             '3gp': 'video/3gpp',
             'mov': 'video/quicktime',
             'avi': 'video/x-msvideo',
@@ -86,7 +87,7 @@ const getContentType = function (data, node, fileName) {
         };
 
         var ext = fileName.split('.')[fileName.split('.').length - 1];
-        contentType = contentTypeMap[ext];
+        contentType = contentTypeMap[ext.toLowerCase()];
         node.debug('contentType for ext ' + ext + ' is ' + contentType + +'(' + fileName + ')');
     }
     if (!contentType) {
@@ -323,6 +324,7 @@ status of a playing audio stream:
 
     const launchYTCallback = function () {
         node.debug('launchYTCallback');
+        /*
         client.launch(YoutubeMediaReceiver, function (err, player) {
             if (err) {
                 errorHandler(node, err, 'Not able to launch YoutubeMediaReceiver');
@@ -343,6 +345,7 @@ status of a playing audio stream:
                 errorHandler(node, err, 'Exception occured on load youtube video', 'exception load youtube video');
             }
         });
+        */
     }
 
     const launchDefCallback = function () {
@@ -497,7 +500,8 @@ status of a playing audio stream:
         } else if (media.mediaList && media.mediaList.length > 0) {
             client.connect(options.ip, launchQueueCallback);
         } else if (media.contentType.indexOf('youtube') !== -1) {
-            client.connect(options.ip, launchYTCallback);
+            node.error('currently not supported');
+            //client.connect(options.ip, launchYTCallback);
         } else {
             client.connect(options.ip, launchDefCallback);
         }
@@ -510,7 +514,8 @@ status of a playing audio stream:
         } else if (media.mediaList && media.mediaList.length > 0) {
             client.connect(options.ip, launchQueueCallback);
         } else if (media.contentType.indexOf('youtube') !== -1) {
-            client.connect(options.ip, options.port, launchYTCallback);
+            node.error('currently not supported');
+            //client.connect(options.ip, options.port, launchYTCallback);
         } else {
             client.connect(options.ip, options.port, launchDefCallback);
         }
@@ -562,17 +567,18 @@ module.exports = function (RED) {
 
             var data = {};
             for (let attr of attrs) {
-                if ((typeof config.attr !== 'undefined') && (config.attr !== '')) {
+                //value === undefined || value === null --> value == null
+                if ((config[attr] != null) && (config[attr] !== '')) {
                     data[attr] = config[attr];
                 }
-                if ((typeof msg.attr !== 'undefined') && (msg.attr != null) && (msg.attr != '')) {
+                if ((msg[attr] != null) && (msg[attr] != '')) {
                     data[attr] = msg[attr];
                 }
             }
 
             if (typeof msg.payload === 'object') {
                 for (let attr of attrs) {
-                    if ((typeof msg.payload.attr !== 'undefined') && (msg.payload.attr != null) && (msg.payload.attr != '')) {
+                    if ((msg.payload[attr] != null) && (msg.payload[attr] != '')) {
                         data[attr] = msg.payload[attr];
                     }
                 }
@@ -583,6 +589,10 @@ module.exports = function (RED) {
                     data.message = msg.payload;
                 }
             }
+            console.log('config');
+            console.log(util.inspect(config));
+            console.log('data');
+            console.log(util.inspect(data)); //, Object.getOwnPropertyNames(data)
             //-------------------------------------------------------------------
             if (typeof data.ip === 'undefined') {
                 this.error('configuraton error: IP is missing!');
