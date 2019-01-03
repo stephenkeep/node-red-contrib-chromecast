@@ -10,7 +10,7 @@ const YoutubeMediaReceiver = require(path.join(__dirname, '/lib/Youtube.js')).Yo
 //const YoutubeMediaReceiver = require('castv2-youtube').Youtube;;
 const googletts = require('google-tts-api');
 
-const errorHandler = function(node, err, messageText, stateText) {
+const errorHandler = function (node, err, messageText, stateText) {
     if (!err) {
         return true;
     }
@@ -54,7 +54,7 @@ const errorHandler = function(node, err, messageText, stateText) {
     return false;
 };
 
-const getContentType = function(data, node, fileName) {
+const getContentType = function (data, node, fileName) {
     //node property wins!
     if (data.contentType) {
         return data.contentType;
@@ -97,7 +97,7 @@ const getContentType = function(data, node, fileName) {
     return contentType;
 };
 
-const addGenericMetadata = function(media, imageUrl, contentTitle) {
+const addGenericMetadata = function (media, imageUrl, contentTitle) {
     if (!contentTitle) {
         //default from url
         contentTitle = media.contentId;
@@ -125,7 +125,7 @@ const addGenericMetadata = function(media, imageUrl, contentTitle) {
     };
 };
 
-const getSpeechUrl = function(node, text, language, options, callback) {
+const getSpeechUrl = function (node, text, language, options, callback) {
     googletts(text, language, 1).then((url) => {
         node.debug('returned tts media url=\'' + url + '\'');
         let media = {
@@ -141,10 +141,10 @@ const getSpeechUrl = function(node, text, language, options, callback) {
     });
 };
 
-const doCast = function(node, media, options, callbackResult) {
+const doCast = function (node, media, options, callbackResult) {
     var client = new Client();
 
-    const onStatus = function(status) {
+    const onStatus = function (status) {
         if (node) {
             node.send([null, {
                 payload: status,
@@ -153,7 +153,7 @@ const doCast = function(node, media, options, callbackResult) {
             }]);
         }
     };
-    const onClose = function() {
+    const onClose = function () {
         node.debug('Player Close');
         client.close();
         /*reconnect(function(newclient, newplayer) {
@@ -161,12 +161,12 @@ const doCast = function(node, media, options, callbackResult) {
             chcPlayer = newplayer;
         });*/
     };
-    const onError = function(err) {
+    const onError = function (err) {
         client.close();
         errorHandler(node, err, 'Client error reported', 'client error');
     };
 
-    const doSetVolume = function(volume) {
+    const doSetVolume = function (volume) {
         var obj = {};
         if (typeof volume === 'object') {
             obj = volume;
@@ -186,7 +186,7 @@ const doCast = function(node, media, options, callbackResult) {
             }
         }
         node.debug('try to set volume ' + JSON.stringify(obj));
-        client.setVolume(obj, function(err, newvol) {
+        client.setVolume(obj, function (err, newvol) {
             if (err) {
                 errorHandler(node, err, 'Not able to set the volume');
             } else if (node) {
@@ -195,21 +195,23 @@ const doCast = function(node, media, options, callbackResult) {
         });
     };
 
-    const checkOptions = function(options) {
+    const checkOptions = function (options) {
         node.debug('checkOptions');
         if (typeof options.muted !== 'undefined' && options.muted != null) {
             doSetVolume({
                 muted: (options.muted === true)
             });
         } else if (options.volume === 0) {
-            doSetVolume({ muted: true });
+            doSetVolume({
+                muted: true
+            });
         }
 
         if (typeof options.volume !== 'undefined' && options.volume != null) {
             doSetVolume(options.volume);
         } else if (typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
             //eventually getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
-            client.getVolume(function(err, newvol) {
+            client.getVolume(function (err, newvol) {
                 if (err) {
                     errorHandler(node, err, 'Not able to get the volume');
                 } else {
@@ -228,13 +230,13 @@ const doCast = function(node, media, options, callbackResult) {
         if (typeof options.pause !== 'undefined' && options.pause === true) {
             node.debug('sending pause signal to player');
 
-            client.getSessions(function(err, sessions) {
+            client.getSessions(function (err, sessions) {
                 if (err) {
                     errorHandler(node, err, 'Not able to get sessions');
                 } else {
-                    client.join(sessions[0], DefaultMediaReceiver, function(err, app) {
+                    client.join(sessions[0], DefaultMediaReceiver, function (err, app) {
                         if (!app.media.currentSession) {
-                            app.getStatus(function() {
+                            app.getStatus(function () {
                                 app.pause();
                             });
                         } else {
@@ -247,13 +249,13 @@ const doCast = function(node, media, options, callbackResult) {
 
         if (typeof options.stop !== 'undefined' && options.stop === true) {
             node.debug('sending pause signal to player');
-            client.getSessions(function(err, sessions) {
+            client.getSessions(function (err, sessions) {
                 if (err) {
                     errorHandler(node, err, 'Not able to get sessions');
                 } else {
-                    client.join(sessions[0], DefaultMediaReceiver, function(err, app) {
+                    client.join(sessions[0], DefaultMediaReceiver, function (err, app) {
                         if (!app.media.currentSession) {
-                            app.getStatus(function() {
+                            app.getStatus(function () {
                                 app.stop();
                             });
                         } else {
@@ -273,9 +275,9 @@ status of a playing audio stream:
     status if nothing playing:
     {"applications":[{"appId":"CC1AD845","displayName":"Default Media Receiver","iconUrl":"","isIdleScreen":false,"launchedFromCloud":false,"namespaces":[{"name":"urn:x-cast:com.google.cast.cac"},{"name":"urn:x-cast:com.google.cast.broadcast"},{"name":"urn:x-cast:com.google.cast.media"}],"sessionId":"7d6af4d1-eb33-4643-bcdd-6c50c79dbbce","statusText":"Default Media Receiver","transportId":"7d6af4d1-eb33-4643-bcdd-6c50c79dbbce"}],"userEq":{"high_shelf":{"frequency":4500,"gain_db":0,"quality":0.707},"low_shelf":{"frequency":150,"gain_db":0,"quality":0.707},"max_peaking_eqs":0,"peaking_eqs":[]},"volume":{"controlType":"master","level":0.2799999713897705,"muted":false,"stepInterval":0.019999999552965164}}
     /* */
-    const statusCallback = function() {
+    const statusCallback = function () {
         node.debug('statusCallback');
-        client.getSessions(function(err, sessions) {
+        client.getSessions(function (err, sessions) {
             node.debug('getSessions Callback');
             if (err) {
                 errorHandler(node, err, 'error getting session');
@@ -284,8 +286,8 @@ status of a playing audio stream:
                     checkOptions(options);
                     var session = sessions[0]; // For now only one app runs at once, so using the first session should be ok
                     node.debug("session: " + JSON.stringify(sessions));
-                    if (typeof sessions !== 'undefined' && sessions.length >0) {
-                        client.join(session, DefaultMediaReceiver, function(err, player) {
+                    if (typeof sessions !== 'undefined' && sessions.length > 0) {
+                        client.join(session, DefaultMediaReceiver, function (err, player) {
                             node.debug('join Callback');
                             if (err) {
                                 errorHandler(node, err, 'error joining session');
@@ -295,7 +297,7 @@ status of a playing audio stream:
                                 player.on('close', onClose);
 
                                 node.debug('do get Status from player');
-                                client.getStatus(function(err, status) {
+                                client.getStatus(function (err, status) {
                                     if (err) {
                                         errorHandler(node, err, 'Not able to get status');
                                     } else {
@@ -308,7 +310,9 @@ status of a playing audio stream:
                     } else {
                         //nothing is playing
                         client.close();
-                        callbackResult({"applications":[]}, options);
+                        callbackResult({
+                            "applications": []
+                        }, options);
                     }
                 } catch (err) {
                     errorHandler(node, err, 'Exception occured on load media', 'exception load media');
@@ -317,9 +321,9 @@ status of a playing audio stream:
         });
     }
 
-    const launchYTCallback = function() {
+    const launchYTCallback = function () {
         node.debug('launchYTCallback');
-        client.launch(YoutubeMediaReceiver, function(err, player) {
+        client.launch(YoutubeMediaReceiver, function (err, player) {
             if (err) {
                 errorHandler(node, err, 'Not able to launch YoutubeMediaReceiver');
             }
@@ -341,7 +345,7 @@ status of a playing audio stream:
         });
     }
 
-    const launchDefCallback = function() {
+    const launchDefCallback = function () {
         node.debug('launchDefCallback');
         client.launch(DefaultMediaReceiver, (err, player) => {
             if (err) {
@@ -376,7 +380,7 @@ status of a playing audio stream:
                         } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                             if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                                 node.debug('seek to position ' + String(options.seek));
-                                player.seek(options.seek, function(err, status) {
+                                player.seek(options.seek, function (err, status) {
                                     if (err) {
                                         errorHandler(node, err, 'Not able to seek to position ' + String(options.seek));
                                     } else {
@@ -391,7 +395,7 @@ status of a playing audio stream:
                     });
                 } else {
                     node.debug('get Status from player');
-                    client.getStatus(function(err, status) {
+                    client.getStatus(function (err, status) {
                         if (err) {
                             errorHandler(node, err, 'Not able to get status');
                         } else {
@@ -407,13 +411,13 @@ status of a playing audio stream:
         });
     };
 
-    const launchQueueCallback = function() {
+    const launchQueueCallback = function () {
         client.launch(DefaultMediaReceiver, (err, player) => {
             if (err) {
                 errorHandler(node, err, 'Not able to launch DefaultMediaReceiver');
             }
 
-            player.on('status', function(status) {
+            player.on('status', function (status) {
                 node.debug('QUEUE STATUS ' + JSON.stringify(status));
             });
 
@@ -437,7 +441,7 @@ status of a playing audio stream:
                             startIndex: 1,
                             repeatMode: "REPEAT_OFF"
                         },
-                        function(err, status) {
+                        function (err, status) {
                             node.log("Loaded QUEUE of " + media.mediaList.length + " items");
 
                             if (err) {
@@ -445,7 +449,7 @@ status of a playing audio stream:
                             } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                                 if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                                     node.debug('seek to position ' + String(options.seek));
-                                    player.seek(options.seek, function(err, status) {
+                                    player.seek(options.seek, function (err, status) {
                                         if (err) {
                                             errorHandler(node, err, 'Not able to seek to position ' + String(options.seek));
                                         } else {
@@ -465,7 +469,7 @@ status of a playing audio stream:
 
                 } else {
                     node.debug('get Status from player');
-                    client.getStatus(function(err, status) {
+                    client.getStatus(function (err, status) {
                         if (err) {
                             errorHandler(node, err, 'Not able to get status');
                         } else {
@@ -513,12 +517,12 @@ status of a playing audio stream:
     }
 };
 
-module.exports = function(RED) {
+module.exports = function (RED) {
     function CastNode(config) {
         RED.nodes.createNode(this, config);
         //var node = this;
 
-        this.on('input', function(msg) {
+        this.on('input', function (msg) {
             //-----------------------------------------
             //Error Handling
             if (!Client) {
@@ -558,17 +562,17 @@ module.exports = function(RED) {
 
             var data = {};
             for (let attr of attrs) {
-                if (config[attr]) {
+                if ((typeof config.attr !== 'undefined') && (config.attr !== '')) {
                     data[attr] = config[attr];
                 }
-                if (msg[attr]) {
+                if ((typeof msg.attr !== 'undefined') && (msg.attr != null) && (msg.attr != '')) {
                     data[attr] = msg[attr];
                 }
             }
 
             if (typeof msg.payload === 'object') {
                 for (let attr of attrs) {
-                    if (msg.payload[attr]) {
+                    if ((typeof msg.payload.attr !== 'undefined') && (msg.payload.attr != null) && (msg.payload.attr != '')) {
                         data[attr] = msg.payload[attr];
                     }
                 }
