@@ -589,10 +589,6 @@ module.exports = function (RED) {
                     data.message = msg.payload;
                 }
             }
-            console.log('config');
-            console.log(util.inspect(config));
-            console.log('data');
-            console.log(util.inspect(data)); //, Object.getOwnPropertyNames(data)
             //-------------------------------------------------------------------
             if (typeof data.ip === 'undefined') {
                 this.error('configuraton error: IP is missing!');
