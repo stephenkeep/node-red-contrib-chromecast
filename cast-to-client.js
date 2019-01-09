@@ -40,7 +40,7 @@ const errorHandler = function (node, err, messageText, stateText) {
 
     if (node) {
         node.error(messageText);
-        node.debug(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+        node.debug(util.inspect(err, Object.getOwnPropertyNames(err)));
         node.status({
             fill: 'red',
             shape: 'ring',
@@ -48,7 +48,7 @@ const errorHandler = function (node, err, messageText, stateText) {
         });
     } else if (console) {
         console.error(messageText);
-        console.error(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+        console.error(util.inspect(err, Object.getOwnPropertyNames(err)));
     }
     return false;
 };
@@ -186,7 +186,7 @@ const doCast = function (node, media, options, callbackResult) {
                 };
             }
         }
-        node.debug('try to set volume ' + JSON.stringify(obj));
+        node.debug('try to set volume ' + util.inspect(obj, Object.getOwnPropertyNames(obj)));
         client.setVolume(obj, function (err, newvol) {
             if (err) {
                 errorHandler(node, err, 'Not able to set the volume');
@@ -198,6 +198,7 @@ const doCast = function (node, media, options, callbackResult) {
 
     const checkOptions = function (options) {
         node.debug('checkOptions');
+        node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
         if (typeof options.muted !== 'undefined' && options.muted != null) {
             doSetVolume({
                 muted: (options.muted === true)
@@ -216,7 +217,7 @@ const doCast = function (node, media, options, callbackResult) {
                 if (err) {
                     errorHandler(node, err, 'Not able to get the volume');
                 } else {
-                    node.debug('volume get from client ' + JSON.stringify(newvol));
+                    node.debug('volume get from client ' + util.inspect(newvol, Object.getOwnPropertyNames(newvol)));
                     options.oldVolume = newvol.level * 100;
                     //options.muted = (newvol.level < 0.01);
                     if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
@@ -286,7 +287,7 @@ status of a playing audio stream:
                 try {
                     checkOptions(options);
                     var session = sessions[0]; // For now only one app runs at once, so using the first session should be ok
-                    node.debug("session: " + JSON.stringify(sessions));
+                    node.debug("session: " + util.inspect(sessions, Object.getOwnPropertyNames(sessions)));
                     if (typeof sessions !== 'undefined' && sessions.length > 0) {
                         client.join(session, DefaultMediaReceiver, function (err, player) {
                             node.debug('join Callback');
@@ -334,7 +335,7 @@ status of a playing audio stream:
                 if (media.videoId) {
                     media.contentId = videoId;
                 }
-                node.debug('experimental implementation playing youtube videos media=\'' + JSON.stringify(media) + '\'');
+                node.debug('experimental implementation playing youtube videos media=\'' + util.inspect(media, Object.getOwnPropertyNames(media)) + '\'');
                 player.load(media.contentId, (err) => {
                     if (err) {
                         errorHandler(node, err, 'Not able to load youtube video', 'error load youtube video');
@@ -363,15 +364,15 @@ status of a playing audio stream:
                     typeof media === 'object' &&
                     typeof media.contentId !== 'undefined') {
                     if (typeof media.contentType !== 'string' ||
-                        media.contentType == '') {
+                        media.contentType === '') {
                         media.contentType = 'audio/basic';
                     }
                     if (typeof media.streamType !== 'string' ||
-                        media.streamType == '') {
+                        media.streamType === '') {
                         media.streamType = 'BUFFERED';
                     }
 
-                    node.debug('loading player with media=\'' + JSON.stringify(media) + '\'');
+                    node.debug('loading player with media=\'' + util.inspect(media, Object.getOwnPropertyNames(media)) + '\'');
 
                     addGenericMetadata(media);
 
@@ -421,7 +422,7 @@ status of a playing audio stream:
             }
 
             player.on('status', function (status) {
-                node.debug('QUEUE STATUS ' + JSON.stringify(status));
+                node.debug('QUEUE STATUS ' + util.inspect(status, Object.getOwnPropertyNames(status)));
             });
 
             try {
@@ -433,7 +434,7 @@ status of a playing audio stream:
                     typeof media.mediaList !== 'undefined') {
 
                     node.log('loading player with queue= ' + media.mediaList.length + " items");
-                    node.debug('queue data=\'' + JSON.stringify(media) + '\'');
+                    node.debug('queue data=\'' + util.inspect(media, Object.getOwnPropertyNames(media)) + '\'');
 
                     for (var i = 0; i < media.mediaList.length; i++) {
                         addGenericMetadata(media.mediaList[i].media, media.imageUrl);
@@ -493,7 +494,7 @@ status of a playing audio stream:
 
     if (typeof options.port === 'undefined') {
         node.debug('connect to client ip=\'' + options.ip + '\'');
-        node.debug(JSON.stringify(options));
+        node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
         if ((typeof options.status !== 'undefined' && options.status === true) ||
             (typeof media === 'undefined') || (media == null)) {
             client.connect(options.ip, statusCallback);
@@ -507,7 +508,7 @@ status of a playing audio stream:
         }
     } else {
         node.debug('connect to client ip=\'' + options.ip + '\' port=\'' + options.port + '\'');
-        node.debug(JSON.stringify(options));
+        node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
         if ((typeof options.status !== 'undefined' && options.status === true) ||
             (typeof media === 'undefined') || (media == null)) {
             client.connect(options.ip, options.port, statusCallback);
@@ -563,7 +564,7 @@ module.exports = function (RED) {
              * versenden:
              *********************************************/
             //var creds = RED.nodes.getNode(config.creds); - not used
-            let attrs = ['media', 'url', 'urlList', 'imageUrl', 'contentType', 'streamType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
+            let attrs = ['media', 'url', 'urlList', 'imageUrl', 'contentType', 'streamType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'mute', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
 
             var data = {};
             for (let attr of attrs) {
@@ -571,14 +572,14 @@ module.exports = function (RED) {
                 if ((config[attr] != null) && (config[attr] !== '')) {
                     data[attr] = config[attr];
                 }
-                if ((msg[attr] != null) && (msg[attr] != '')) {
+                if ((msg[attr] != null) && (msg[attr] !== '')) {
                     data[attr] = msg[attr];
                 }
             }
 
             if (typeof msg.payload === 'object') {
                 for (let attr of attrs) {
-                    if ((msg.payload[attr] != null) && (msg.payload[attr] != '')) {
+                    if ((msg.payload[attr] != null) && (msg.payload[attr] !== '')) {
                         data[attr] = msg.payload[attr];
                     }
                 }
@@ -602,12 +603,37 @@ module.exports = function (RED) {
             if (typeof data.language === 'undefined' || data.language === '') {
                 data.language = 'en';
             }
-            if (typeof data.volume !== 'undefined' &&
-                !isNaN(data.volume) &&
-                data.volume !== '') {
-                data.volume = parseInt(data.volume) / 100;
-            } else if (data.volume !== 0) {
-                delete data.volume;
+            if (typeof data.volume !== 'undefined') {
+                if (!isNaN(data.volume) &&
+                    data.volume !== '') {
+                    data.volume = parseInt(data.volume) / 100;
+                } else if ((data.volume.toLowerCase() === 'max') ||
+                       (data.volume.toLowerCase() === 'full') ||
+                       (data.volume.toLowerCase() === 'loud')) {
+                    data.volume = 100;
+                } else if ((data.volume.toLowerCase() === 'min') ||
+                        (data.volume.toLowerCase() === 'mute') ||
+                        (data.volume.toLowerCase() === 'muted')) {
+                    data.volume = 0;
+                } else if (data.volume !== 0) {
+                    delete data.volume;
+                }
+            }
+            if (typeof data.mute !== 'undefined') {
+                data.muted = data.mute;
+                delete data.mute;
+            }
+            if (typeof data.muted !== 'undefined' && typeof data.muted !== 'boolean') {
+                data.muted = '' + data.muted;
+                if ((data.muted.toLowerCase() === 'true') ||
+                       (data.muted.toLowerCase() === 'on') ||
+                       (data.muted > 0 )) {
+                        data.muted = true;
+                       } else if ((data.muted.toLowerCase() === 'false') ||
+                       (data.muted.toLowerCase() === 'off') ||
+                       (data.muted <= 0 )) {
+                        data.muted = false;
+                    }
             }
             if (typeof data.lowerVolumeLimit !== 'undefined' &&
                 !isNaN(data.lowerVolumeLimit) &&
@@ -623,6 +649,8 @@ module.exports = function (RED) {
             } else {
                 delete data.upperVolumeLimit;
             }
+            this.debug(util.inspect(data, Object.getOwnPropertyNames(data)));
+
             if (typeof data.delay !== 'undefined' && !isNaN(data.delay) && data.delay !== '') {
                 data.delay = parseInt(data.delay);
             } else {
@@ -633,7 +661,7 @@ module.exports = function (RED) {
                 data.url != null) {
                 this.debug('initialize playing url=\'' + data.url + '\' of contentType=\'' + data.contentType + '\'');
 
-                if (typeof data.contentType !== 'string' || data.contentType == '') {
+                if (typeof data.contentType !== 'string' || data.contentType === '') {
                     data.contentType = getContentType(data, this);
                 }
                 data.media = {
@@ -735,7 +763,7 @@ module.exports = function (RED) {
 
                 if (data.message) {
                     this.debug('initialize getting tts message=\'' + data.message + '\' of language=\'' + data.language + '\'');
-                    this.debug(JSON.stringify(data));
+                    this.debug(util.inspect(data, Object.getOwnPropertyNames(data)));
                     this.status({
                         fill: 'green',
                         shape: 'ring',
