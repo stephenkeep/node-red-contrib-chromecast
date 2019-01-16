@@ -20,6 +20,7 @@
   "scripts": {
     "test": "camo-purge; xo",
     "lintfix": "xo --fix",
+    "lint": "eslint \"./**/*.js\"",
     "predev": "npm i -g",
     "dev": "node-red -v"
   },
@@ -97,7 +98,11 @@
     ],
     "extends": "eslint:recommended",
     "settings": {
-      "html/html-extensions": [".html", ".htm", ".we"],
+      "html/html-extensions": [
+        ".html",
+        ".htm",
+        ".we"
+      ],
       "html/indent": "+2",
       "html/report-bad-indent": "warn",
       "import/resolver": {
@@ -136,7 +141,12 @@
       "eqeqeq": "error",
       "no-else-return": "error",
       "prefer-arrow-callback": "error",
-      "import/newline-after-import": ["warn", { "count": 1 }],
+      "import/newline-after-import": [
+        "warn",
+        {
+          "count": 1
+        }
+      ],
       "no-console": "off",
       "no-unused-vars": [
         "warn",
@@ -156,7 +166,10 @@
       ],
       "no-var": "error",
       "prefer-const": "error",
-      "linebreak-style": ["error", "windows"],
+      "linebreak-style": [
+        "error",
+        "windows"
+      ],
       "brace-style": [
         2,
         "1tbs",
@@ -172,7 +185,10 @@
           "allowTemplateLiterals": true
         }
       ],
-      "semi": ["error", "always"],
+      "semi": [
+        "error",
+        "always"
+      ],
       "comma-dangle": [
         "error",
         {
@@ -184,17 +200,28 @@
         }
       ],
       "no-trailing-spaces": "error",
-      "spaced-comment":["warn", "always", {
-            "line": {
-              "markers": ["/"],
-              "exceptions": ["-", "+", "*", "#"]
+      "spaced-comment": [
+        "warn",
+        "always",
+        {
+          "line": {
+            "markers": [
+              "/"
+            ],
+            "exceptions": [
+              "-",
+              "+",
+              "*",
+              "#"
+            ]
           },
           "block": {
-              "markers": ["!"],
-              "exceptions": ["-", "+", "*", "#"],
-              "balanced": true
+            "markers": ["!"],
+            "exceptions": ["-", "+", "*", "#"],
+            "balanced": true
           }
-      }],
+        }
+      ],
       "eol-last": ["error", "never"]
     }
   }
