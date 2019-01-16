@@ -1,11 +1,12 @@
 /********************************************
  * cast-to-client:
  *********************************************/
+
 const util = require('util');
 const Client = require('castv2-client').Client;
 const DefaultMediaReceiver = require('castv2-client').DefaultMediaReceiver;
-const path = require('path');
-//const YoutubeMediaReceiver = require(path.join(__dirname, '/lib/Youtube.js')).Youtube;
+// const path = require('path');
+// const YoutubeMediaReceiver = require(path.join(__dirname, '/lib/Youtube.js')).Youtube;
 
 const googletts = require('google-tts-api');
 
@@ -14,22 +15,22 @@ const errorHandler = function (node, err, messageText, stateText) {
         return true;
     }
     if (err.message) {
-        let msg = err.message.toLowerCase();
+        const msg = err.message.toLowerCase();
         if (msg.indexOf('invalid player state') >= 0) {
-            //Sent when the request by the sender can not be fulfilled because the player is not in a valid state. For example, if the application has not created a media element yet.
-            //https://developers.google.com/cast/docs/reference/messages#InvalidPlayerState
+            // Sent when the request by the sender can not be fulfilled because the player is not in a valid state. For example, if the application has not created a media element yet.
+            // https://developers.google.com/cast/docs/reference/messages#InvalidPlayerState
             messageText += ':' + err.message + ' The request can not be fulfilled because the player is not in a valid state.';
         } else if (msg.indexOf('load failed') >= 0) {
-            //Sent when the load request failed. The player state will be IDLE.
-            //https://developers.google.com/cast/docs/reference/messages#LoadFailed
+            // Sent when the load request failed. The player state will be IDLE.
+            // https://developers.google.com/cast/docs/reference/messages#LoadFailed
             messageText += ':' + err.message + ' Not able to load the media.';
         } else if (msg.indexOf('load cancelled') >= 0) {
-            //Sent when the load request was cancelled (a second load request was received).
-            //https://developers.google.com/cast/docs/reference/messages#LoadCancelled
+            // Sent when the load request was cancelled (a second load request was received).
+            // https://developers.google.com/cast/docs/reference/messages#LoadCancelled
             messageText += ':' + err.message + ' The request was cancelled (a second load request was received).';
         } else if (msg.indexOf('invalid request') >= 0) {
-            //Sent when the request is invalid (an unknown request type, for example).
-            //https://developers.google.com/cast/docs/reference/messages#InvalidRequest
+            // Sent when the request is invalid (an unknown request type, for example).
+            // https://developers.google.com/cast/docs/reference/messages#InvalidRequest
             messageText += ':' + err.message + ' The request is invalid (example: an unknown request type).';
         } else {
             messageText += ':' + err.message;
@@ -54,7 +55,7 @@ const errorHandler = function (node, err, messageText, stateText) {
 };
 
 const getContentType = function (data, node, fileName) {
-    //node property wins!
+    // node property wins!
     if (data.contentType) {
         return data.contentType;
     }
@@ -63,9 +64,9 @@ const getContentType = function (data, node, fileName) {
         fileName = data.url;
     }
 
-    var contentType;
+    let contentType;
     if (fileName) {
-        var contentTypeMap = {
+        const contentTypeMap = {
             'youtube': 'youtube/video',
             'mp3': 'audio/mp3',
             'mp4': 'audio/mp4',
@@ -86,7 +87,7 @@ const getContentType = function (data, node, fileName) {
             'ra': 'audio/vnd.rn-realaudio'
         };
 
-        var ext = fileName.split('.')[fileName.split('.').length - 1];
+        const ext = fileName.split('.')[fileName.split('.').length - 1];
         contentType = contentTypeMap[ext.toLowerCase()];
         node.debug('contentType for ext ' + ext + ' is ' + contentType + +'(' + fileName + ')');
     }
@@ -100,16 +101,18 @@ const getContentType = function (data, node, fileName) {
 
 const addGenericMetadata = function (media, imageUrl, contentTitle) {
     if (!contentTitle) {
-        //default from url
+        // default from url
         contentTitle = media.contentId;
         if (contentTitle.indexOf('/') > -1) {
             try {
-                var paths = contentTitle.split('/');
+                let paths = contentTitle.split('/');
                 if (paths.length > 2) {
                     paths = paths.slice(paths.length - 2, paths.length);
                 }
                 contentTitle = paths.join(' - ');
-            } catch (e) {}
+            } catch (e) {
+                // not used
+            }
         }
     }
     if (!imageUrl) {
@@ -129,7 +132,7 @@ const addGenericMetadata = function (media, imageUrl, contentTitle) {
 const getSpeechUrl = function (node, text, language, options, callback) {
     googletts(text, language, 1).then((url) => {
         node.debug('returned tts media url=\'' + url + '\'');
-        let media = {
+        const media = {
             contentId: url,
             contentType: 'audio/mp3',
             streamType: 'BUFFERED' // or LIVE
@@ -143,7 +146,7 @@ const getSpeechUrl = function (node, text, language, options, callback) {
 };
 
 const doCast = function (node, media, options, callbackResult) {
-    var client = new Client();
+    const client = new Client();
 
     const onStatus = function (status) {
         if (node) {
@@ -157,10 +160,12 @@ const doCast = function (node, media, options, callbackResult) {
     const onClose = function () {
         node.debug('Player Close');
         client.close();
-        /*reconnect(function(newclient, newplayer) {
+        /*
+        reconnect(function(newclient, newplayer) {
             chcClient = newclient;
             chcPlayer = newplayer;
-        });*/
+        });
+        */
     };
     const onError = function (err) {
         client.close();
@@ -168,7 +173,7 @@ const doCast = function (node, media, options, callbackResult) {
     };
 
     const doSetVolume = function (volume) {
-        var obj = {};
+        let obj = {};
         if (typeof volume === 'object') {
             obj = volume;
         } else {
@@ -187,7 +192,7 @@ const doCast = function (node, media, options, callbackResult) {
             }
         }
         node.debug('try to set volume ' + util.inspect(obj, Object.getOwnPropertyNames(obj)));
-        client.setVolume(obj, function (err, newvol) {
+        client.setVolume(obj, (err, newvol) => {
             if (err) {
                 errorHandler(node, err, 'Not able to set the volume');
             } else if (node) {
@@ -199,7 +204,7 @@ const doCast = function (node, media, options, callbackResult) {
     const checkOptions = function (options) {
         node.debug('checkOptions');
         node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
-        if (typeof options.muted !== 'undefined' && options.muted != null) {
+        if (typeof options.muted !== 'undefined' && options.muted !== null) {
             doSetVolume({
                 muted: (options.muted === true)
             });
@@ -209,17 +214,17 @@ const doCast = function (node, media, options, callbackResult) {
             });
         }
 
-        if (typeof options.volume !== 'undefined' && options.volume != null) {
+        if (typeof options.volume !== 'undefined' && options.volume !== null) {
             doSetVolume(options.volume);
         } else if (typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
-            //eventually getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
-            client.getVolume(function (err, newvol) {
+            // eventually getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
+            client.getVolume((err, newvol) => {
                 if (err) {
                     errorHandler(node, err, 'Not able to get the volume');
                 } else {
                     node.debug('volume get from client ' + util.inspect(newvol, Object.getOwnPropertyNames(newvol)));
                     options.oldVolume = newvol.level * 100;
-                    //options.muted = (newvol.level < 0.01);
+                    // options.muted = (newvol.level < 0.01);
                     if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
                         doSetVolume(options.upperVolumeLimit);
                     } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < options.lowerVolumeLimit)) {
@@ -232,13 +237,13 @@ const doCast = function (node, media, options, callbackResult) {
         if (typeof options.pause !== 'undefined' && options.pause === true) {
             node.debug('sending pause signal to player');
 
-            client.getSessions(function (err, sessions) {
+            client.getSessions((err, sessions) => {
                 if (err) {
                     errorHandler(node, err, 'Not able to get sessions');
                 } else {
-                    client.join(sessions[0], DefaultMediaReceiver, function (err, app) {
+                    client.join(sessions[0], DefaultMediaReceiver, (err, app) => {
                         if (!app.media.currentSession) {
-                            app.getStatus(function () {
+                            app.getStatus(() => {
                                 app.pause();
                             });
                         } else {
@@ -251,13 +256,13 @@ const doCast = function (node, media, options, callbackResult) {
 
         if (typeof options.stop !== 'undefined' && options.stop === true) {
             node.debug('sending pause signal to player');
-            client.getSessions(function (err, sessions) {
+            client.getSessions((err, sessions) => {
                 if (err) {
                     errorHandler(node, err, 'Not able to get sessions');
                 } else {
-                    client.join(sessions[0], DefaultMediaReceiver, function (err, app) {
+                    client.join(sessions[0], DefaultMediaReceiver, (err, app) => {
                         if (!app.media.currentSession) {
-                            app.getStatus(function () {
+                            app.getStatus(() => {
                                 app.stop();
                             });
                         } else {
@@ -267,7 +272,7 @@ const doCast = function (node, media, options, callbackResult) {
                 }
             });
         }
-    }
+    };
 
     /*
 status of a playing audio stream:
@@ -279,17 +284,17 @@ status of a playing audio stream:
     /* */
     const statusCallback = function () {
         node.debug('statusCallback');
-        client.getSessions(function (err, sessions) {
+        client.getSessions((err, sessions) => {
             node.debug('getSessions Callback');
             if (err) {
                 errorHandler(node, err, 'error getting session');
             } else {
                 try {
                     checkOptions(options);
-                    var session = sessions[0]; // For now only one app runs at once, so using the first session should be ok
-                    node.debug("session: " + util.inspect(sessions, Object.getOwnPropertyNames(sessions)));
+                    const session = sessions[0]; // For now only one app runs at once, so using the first session should be ok
+                    node.debug('session: ' + util.inspect(sessions, Object.getOwnPropertyNames(sessions)));
                     if (typeof sessions !== 'undefined' && sessions.length > 0) {
-                        client.join(session, DefaultMediaReceiver, function (err, player) {
+                        client.join(session, DefaultMediaReceiver, (err, player) => {
                             node.debug('join Callback');
                             if (err) {
                                 errorHandler(node, err, 'error joining session');
@@ -299,7 +304,7 @@ status of a playing audio stream:
                                 player.on('close', onClose);
 
                                 node.debug('do get Status from player');
-                                client.getStatus(function (err, status) {
+                                client.getStatus((err, status) => {
                                     if (err) {
                                         errorHandler(node, err, 'Not able to get status');
                                     } else {
@@ -310,10 +315,10 @@ status of a playing audio stream:
                             }
                         });
                     } else {
-                        //nothing is playing
+                        // nothing is playing
                         client.close();
                         callbackResult({
-                            "applications": []
+                            'applications': []
                         }, options);
                     }
                 } catch (err) {
@@ -321,7 +326,7 @@ status of a playing audio stream:
                 }
             }
         });
-    }
+    };
 
     const launchYTCallback = function () {
         node.debug('launchYTCallback');
@@ -347,7 +352,7 @@ status of a playing audio stream:
             }
         });
         */
-    }
+    };
 
     const launchDefCallback = function () {
         node.debug('launchDefCallback');
@@ -359,7 +364,7 @@ status of a playing audio stream:
             try {
                 checkOptions(options);
 
-                if (media != null &&
+                if (media !== null &&
                     typeof media !== 'undefined' &&
                     typeof media === 'object' &&
                     typeof media.contentId !== 'undefined') {
@@ -384,7 +389,7 @@ status of a playing audio stream:
                         } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                             if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                                 node.debug('seek to position ' + String(options.seek));
-                                player.seek(options.seek, function (err, status) {
+                                player.seek(options.seek, (err, status) => {
                                     if (err) {
                                         errorHandler(node, err, 'Not able to seek to position ' + String(options.seek));
                                     } else {
@@ -399,7 +404,7 @@ status of a playing audio stream:
                     });
                 } else {
                     node.debug('get Status from player');
-                    client.getStatus(function (err, status) {
+                    client.getStatus((err, status) => {
                         if (err) {
                             errorHandler(node, err, 'Not able to get status');
                         } else {
@@ -421,39 +426,39 @@ status of a playing audio stream:
                 errorHandler(node, err, 'Not able to launch DefaultMediaReceiver');
             }
 
-            player.on('status', function (status) {
+            player.on('status', (status) => {
                 node.debug('QUEUE STATUS ' + util.inspect(status, Object.getOwnPropertyNames(status)));
             });
 
             try {
                 checkOptions(options);
 
-                if (media != null &&
+                if (media !== null &&
                     typeof media !== 'undefined' &&
                     typeof media === 'object' &&
                     typeof media.mediaList !== 'undefined') {
 
-                    node.log('loading player with queue= ' + media.mediaList.length + " items");
+                    node.log('loading player with queue= ' + media.mediaList.length + ' items');
                     node.debug('queue data=\'' + util.inspect(media, Object.getOwnPropertyNames(media)) + '\'');
 
-                    for (var i = 0; i < media.mediaList.length; i++) {
+                    for (let i = 0; i < media.mediaList.length; i++) {
                         addGenericMetadata(media.mediaList[i].media, media.imageUrl);
                     }
 
                     player.queueLoad(
                         media.mediaList, {
                             startIndex: 1,
-                            repeatMode: "REPEAT_OFF"
+                            repeatMode: 'REPEAT_OFF'
                         },
-                        function (err, status) {
-                            node.log("Loaded QUEUE of " + media.mediaList.length + " items");
+                        (err, status) => {
+                            node.log('Loaded QUEUE of ' + media.mediaList.length + ' items');
 
                             if (err) {
                                 errorHandler(node, err, 'Not able to load media', 'error load media');
                             } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                                 if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                                     node.debug('seek to position ' + String(options.seek));
-                                    player.seek(options.seek, function (err, status) {
+                                    player.seek(options.seek, (err, status) => {
                                         if (err) {
                                             errorHandler(node, err, 'Not able to seek to position ' + String(options.seek));
                                         } else {
@@ -465,15 +470,12 @@ status of a playing audio stream:
                                 callbackResult(status, options);
                             }
                             client.close();
-
-
                         }
                     );
 
-
                 } else {
                     node.debug('get Status from player');
-                    client.getStatus(function (err, status) {
+                    client.getStatus((err, status) => {
                         if (err) {
                             errorHandler(node, err, 'Not able to get status');
                         } else {
@@ -496,13 +498,13 @@ status of a playing audio stream:
         node.debug('connect to client ip=\'' + options.ip + '\'');
         node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
         if ((typeof options.status !== 'undefined' && options.status === true) ||
-            (typeof media === 'undefined') || (media == null)) {
+            (typeof media === 'undefined') || (media === null)) {
             client.connect(options.ip, statusCallback);
         } else if (media.mediaList && media.mediaList.length > 0) {
             client.connect(options.ip, launchQueueCallback);
         } else if (media.contentType.indexOf('youtube') !== -1) {
             node.error('currently not supported');
-            //client.connect(options.ip, launchYTCallback);
+            // client.connect(options.ip, launchYTCallback);
         } else {
             client.connect(options.ip, launchDefCallback);
         }
@@ -510,13 +512,13 @@ status of a playing audio stream:
         node.debug('connect to client ip=\'' + options.ip + '\' port=\'' + options.port + '\'');
         node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
         if ((typeof options.status !== 'undefined' && options.status === true) ||
-            (typeof media === 'undefined') || (media == null)) {
+            (typeof media === 'undefined') || (media === null)) {
             client.connect(options.ip, options.port, statusCallback);
         } else if (media.mediaList && media.mediaList.length > 0) {
             client.connect(options.ip, launchQueueCallback);
         } else if (media.contentType.indexOf('youtube') !== -1) {
             node.error('currently not supported');
-            //client.connect(options.ip, options.port, launchYTCallback);
+            // client.connect(options.ip, options.port, launchYTCallback);
         } else {
             client.connect(options.ip, options.port, launchDefCallback);
         }
@@ -526,11 +528,11 @@ status of a playing audio stream:
 module.exports = function (RED) {
     function CastNode(config) {
         RED.nodes.createNode(this, config);
-        //var node = this;
+        // var node = this;
 
         this.on('input', function (msg) {
             //-----------------------------------------
-            //Error Handling
+            // Error Handling
             if (!Client) {
                 this.error('Client not defined!! - Installation Problem, Please reinstall!');
                 this.status({
@@ -563,23 +565,28 @@ module.exports = function (RED) {
             /********************************************
              * versenden:
              *********************************************/
-            //var creds = RED.nodes.getNode(config.creds); - not used
-            let attrs = ['media', 'url', 'urlList', 'imageUrl', 'contentType', 'streamType', 'message', 'language', 'ip', 'port', 'volume', 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'mute', 'delay', 'stop', 'pause', 'seek', 'duration', 'status'];
+            // var creds = RED.nodes.getNode(config.creds); - not used
+            const attrs = [
+                'media', 'url', 'urlList', 'imageUrl', 'contentType',
+                'streamType', 'message', 'language', 'ip', 'port', 'volume',
+                'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'mute',
+                'delay', 'stop', 'pause', 'seek', 'duration', 'status'
+            ];
 
-            var data = {};
-            for (let attr of attrs) {
-                //value === undefined || value === null --> value == null
-                if ((config[attr] != null) && (config[attr] !== '')) {
+            const data = {};
+            for (const attr of attrs) {
+                // value === undefined || value === null --> value == null
+                if ((config[attr] != null) && (config[attr] !== '')) { // eslint-disable-line
                     data[attr] = config[attr];
                 }
-                if ((msg[attr] != null) && (msg[attr] !== '')) {
+                if ((msg[attr] != null) && (msg[attr] !== '')) { // eslint-disable-line
                     data[attr] = msg[attr];
                 }
             }
 
             if (typeof msg.payload === 'object') {
-                for (let attr of attrs) {
-                    if ((msg.payload[attr] != null) && (msg.payload[attr] !== '')) {
+                for (const attr of attrs) {
+                    if ((msg.payload[attr] != null) && (msg.payload[attr] !== '')) { // eslint-disable-line
                         data[attr] = msg.payload[attr];
                     }
                 }
@@ -628,12 +635,12 @@ module.exports = function (RED) {
                 if ((data.muted.toLowerCase() === 'true') ||
                        (data.muted.toLowerCase() === 'on') ||
                        (data.muted > 0 )) {
-                        data.muted = true;
-                       } else if ((data.muted.toLowerCase() === 'false') ||
+                    data.muted = true;
+                } else if ((data.muted.toLowerCase() === 'false') ||
                        (data.muted.toLowerCase() === 'off') ||
                        (data.muted <= 0 )) {
-                        data.muted = false;
-                    }
+                    data.muted = false;
+                }
             }
             if (typeof data.lowerVolumeLimit !== 'undefined' &&
                 !isNaN(data.lowerVolumeLimit) &&
@@ -658,7 +665,7 @@ module.exports = function (RED) {
             }
 
             if (typeof data.url !== 'undefined' &&
-                data.url != null) {
+                data.url != null) {  // eslint-disable-line
                 this.debug('initialize playing url=\'' + data.url + '\' of contentType=\'' + data.contentType + '\'');
 
                 if (typeof data.contentType !== 'string' || data.contentType === '') {
@@ -667,20 +674,20 @@ module.exports = function (RED) {
                 data.media = {
                     contentId: data.url,
                     contentType: data.contentType
-                }
+                };
             } else if (typeof data.urlList !== 'undefined' && data.urlList.length > 0) {
-                //if is a list of files
+                // if is a list of files
                 this.debug('initialize playing queue=\'' + data.urlList.length);
 
-                data.media = {}
+                data.media = {};
                 data.media.mediaList = [];
 
-                var listSize = data.urlList.length;
-                for (var i = 0; i < listSize; i++) {
-                    var item = data.urlList[i];
+                const listSize = data.urlList.length;
+                for (let i = 0; i < listSize; i++) {
+                    const item = data.urlList[i];
 
-                    var contentType = getContentType(data, this, item);
-                    var mediaItem = {
+                    const contentType = getContentType(data, this, item);
+                    const mediaItem = {
                         autoplay: true,
                         preloadTime: listSize,
                         startTime: i + 1,
@@ -697,15 +704,15 @@ module.exports = function (RED) {
             }
 
             if (typeof data.media === 'object' &&
-                data.media != null) {
+                data.media != null) { // eslint-disable-line
 
                 if (typeof data.contentType !== 'undefined' &&
-                    data.contentType != null) {
+                    data.contentType != null) { // eslint-disable-line
                     data.media.contentType = data.contentType;
                 }
 
                 if (typeof data.streamType !== 'undefined' &&
-                    data.streamType != null) {
+                    data.streamType != null) { // eslint-disable-line
                     data.media.streamType = data.streamType;
                 }
 
@@ -714,7 +721,8 @@ module.exports = function (RED) {
                     data.media.duration = data.duration;
                 }
 
-                if (typeof data.imageUrl !== 'undefined' && data.imageUrl != null) {
+                if (typeof data.imageUrl !== 'undefined' &&
+                    data.imageUrl != null) { // eslint-disable-line
                     data.media.imageUrl = data.imageUrl;
                 }
             }
@@ -799,8 +807,8 @@ module.exports = function (RED) {
             } catch (err) {
                 errorHandler(this, err, 'Exception occured on cast media to oputput', 'internal error');
             }
-            //this.error("Input parameter wrong or missing. You need to setup (or give in the input message) the 'url' and 'content type' or the 'message' and 'language'!!");
-            //this.status({fill:"red",shape:"dot",text:"error - input parameter"});
+            // this.error("Input parameter wrong or missing. You need to setup (or give in the input message) the 'url' and 'content type' or the 'message' and 'language'!!");
+            // this.status({fill:"red",shape:"dot",text:"error - input parameter"});
             return null;
         });
     }
