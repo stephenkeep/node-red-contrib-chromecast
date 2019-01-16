@@ -32,7 +32,8 @@
     "email": "hypnos3@online.de",
     "url": "https://github.com/hypnos3"
   },
-  "contributors": [{
+  "contributors": [
+    {
       "name": "Stephen Keep",
       "email": "stephenkeep@gmail.com",
       "url": "https://github.com/stephenkeep"
