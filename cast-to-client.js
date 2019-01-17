@@ -10,6 +10,16 @@ const DefaultMediaReceiver = require('castv2-client').DefaultMediaReceiver;
 
 const googletts = require('google-tts-api');
 
+const isTrue = function(val) {
+    val = (val+'').toLowerCase();
+    return (val === 'true' || val === 'yes' || val === 'on' || val === 'ja' || val === '1' || (!isNaN(val) && (Number(val) > 0)));
+};
+
+const isFalse = function(val) {
+    val = (val+'').toLowerCase();
+    return (val === 'false' || val === 'no' || val === 'off' || val === 'nein' || val === '0' || (!isNaN(val) && (Number(val) <= 0)));
+};
+
 const errorHandler = function (node, err, messageText, stateText) {
     if (!err) {
         return true;
@@ -625,14 +635,9 @@ module.exports = function (RED) {
                 delete data.mute;
             }
             if (typeof data.muted !== 'undefined' && typeof data.muted !== 'boolean') {
-                data.muted = String(data.muted);
-                if ((data.muted.toLowerCase() === 'true') ||
-                       (data.muted.toLowerCase() === 'on') ||
-                       (data.muted > 0)) {
+                if (isTrue(data.muted)) {
                     data.muted = true;
-                } else if ((data.muted.toLowerCase() === 'false') ||
-                       (data.muted.toLowerCase() === 'off') ||
-                       (data.muted <= 0)) {
+                } else if (isFalse(data.muted)) {
                     data.muted = false;
                 }
             }
