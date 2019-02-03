@@ -579,7 +579,7 @@ module.exports = function (RED) {
 
             const data = {};
             for (const attr of attrs) {
-                // Value === undefined || value === null --> value == null
+                // Value === 'undefined' || value === null --> value == null
                 if ((config[attr] != null) && (config[attr] !== '')) { // eslint-disable-line
                     data[attr] = config[attr];
                 }
