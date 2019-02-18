@@ -171,15 +171,29 @@ const doCast = function (node, media, options, callbackResult) {
         node.debug('Player Close');
         client.close();
         /*
-        Reconnect(function(newclient, newplayer) {
-            chcClient = newclient;
-            chcPlayer = newplayer;
+        Reconnect(function(newClient, newPlayer) {
+            chcClient = newClient;
+            chcPlayer = newPlayer;
         });
         */
     };
     const onError = function (err) {
         client.close();
         errorHandler(node, err, 'Client error reported', 'client error');
+    };
+
+    const doGetVolume = function (fkt) {
+        client.getVolume((err, vol) => {
+            if (err) {
+                errorHandler(node, err, 'Not able to get the volume');
+            } else {
+                node.context().set('volume', vol.level);
+                node.debug('volume get from client ' + util.inspect(vol, Object.getOwnPropertyNames(vol)));
+                if (fkt) {
+                    fkt(vol);
+                }
+            }
+        });
     };
 
     const doSetVolume = function (volume) {
@@ -201,6 +215,12 @@ const doCast = function (node, media, options, callbackResult) {
         }
         node.debug('try to set volume ' + util.inspect(obj, Object.getOwnPropertyNames(obj)));
         client.setVolume(obj, (err, newvol) => {
+            const oldVol = node.context().get('volume');
+            if (oldVol !== newvol.level) {
+                node.context().set('oldVolume', oldVol);
+                node.context().set('volume', newvol.level);
+            }
+
             if (err) {
                 errorHandler(node, err, 'Not able to set the volume');
             } else if (node) {
@@ -212,32 +232,24 @@ const doCast = function (node, media, options, callbackResult) {
     const checkOptions = function (options) {
         node.debug('checkOptions');
         node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
-        if (typeof options.muted !== 'undefined' && options.muted !== null) {
-            doSetVolume({
-                muted: (options.muted === true)
-            });
-        } else if (options.volume === 0) {
+        if (isTrue(options.muted)) {
             doSetVolume({
                 muted: true
             });
-        }
-
-        if (typeof options.volume !== 'undefined' && options.volume !== null) {
+        } else if (isFalse(options.muted)) {
+            doSetVolume({
+                muted: false
+            });
+        } else if (typeof options.volume !== 'undefined' && options.volume !== null) {
             doSetVolume(options.volume);
         } else if (typeof options.lowerVolumeLimit !== 'undefined' || typeof options.upperVolumeLimit !== 'undefined') {
             // Eventually getVolume --> https://developers.google.com/cast/docs/reference/receiver/cast.receiver.media.Player
-            client.getVolume((err, newvol) => {
-                if (err) {
-                    errorHandler(node, err, 'Not able to get the volume');
-                } else {
-                    node.debug('volume get from client ' + util.inspect(newvol, Object.getOwnPropertyNames(newvol)));
-                    options.oldVolume = newvol.level * 100;
-                    // Options.muted = (newvol.level < 0.01);
-                    if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
-                        doSetVolume(options.upperVolumeLimit);
-                    } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < options.lowerVolumeLimit)) {
-                        doSetVolume(options.lowerVolumeLimit);
-                    }
+            doGetVolume( (newvol) => {
+                options.oldVolume = newvol.level * 100;
+                if (options.upperVolumeLimit !== 'undefined' && (newvol.level > options.upperVolumeLimit)) {
+                    doSetVolume(options.upperVolumeLimit);
+                } else if (typeof options.lowerVolumeLimit !== 'undefined' && (newvol.level < options.lowerVolumeLimit)) {
+                    doSetVolume(options.lowerVolumeLimit);
                 }
             });
         }
@@ -330,7 +342,7 @@ Status of a playing audio stream:
                         }, options);
                     }
                 } catch (err) {
-                    errorHandler(node, err, 'Exception occured on load media', 'exception load media');
+                    errorHandler(node, err, 'Exception occurred on load media', 'exception load media');
                 }
             }
         });
@@ -356,7 +368,7 @@ Status of a playing audio stream:
                     client.close();
                 });
             } catch (err) {
-                errorHandler(node, err, 'Exception occured on load youtube video', 'exception load youtube video');
+                errorHandler(node, err, 'Exception occurred on load youtube video', 'exception load youtube video');
             }
         });
     };
@@ -422,7 +434,7 @@ Status of a playing audio stream:
                     });
                 }
             } catch (err) {
-                errorHandler(node, err, 'Exception occured on load media', 'exception load media');
+                errorHandler(node, err, 'Exception occurred on load media', 'exception load media');
             }
         });
     };
@@ -490,7 +502,7 @@ Status of a playing audio stream:
                     });
                 }
             } catch (err) {
-                errorHandler(node, err, 'Exception occured on load media', 'exception load media');
+                errorHandler(node, err, 'Exception occurred on load media', 'exception load media');
             }
         });
     };
@@ -603,7 +615,7 @@ module.exports = function (RED) {
             }
             //-------------------------------------------------------------------
             if (typeof data.ip === 'undefined') {
-                this.error('configuraton error: IP is missing!');
+                this.error('configuration error: IP is missing!');
                 this.status({
                     fill: 'red',
                     shape: 'dot',
@@ -634,24 +646,23 @@ module.exports = function (RED) {
                 data.muted = data.mute;
                 delete data.mute;
             }
-            if (typeof data.muted !== 'undefined' && typeof data.muted !== 'boolean') {
-                if (isTrue(data.muted)) {
-                    data.muted = true;
-                } else if (isFalse(data.muted)) {
-                    data.muted = false;
-                }
-            }
             if (typeof data.lowerVolumeLimit !== 'undefined' &&
                 !isNaN(data.lowerVolumeLimit) &&
                 data.lowerVolumeLimit !== '') {
-                data.lowerVolumeLimit = parseInt(data.lowerVolumeLimit) / 100;
-            } else if (data.lowerVolumeLimit !== 0) {
+                data.lowerVolumeLimit = parseFloat(data.lowerVolumeLimit);
+                if (data.lowerVolumeLimit > 1) {
+                    data.lowerVolumeLimit = data.lowerVolumeLimit / 100;
+                }
+            } else {
                 delete data.lowerVolumeLimit;
             }
             if (typeof data.upperVolumeLimit !== 'undefined' &&
                 !isNaN(data.upperVolumeLimit) &&
                 data.upperVolumeLimit !== '') {
-                data.upperVolumeLimit = parseInt(data.upperVolumeLimit) / 100;
+                data.upperVolumeLimit = parseFloat(data.upperVolumeLimit);
+                if (data.upperVolumeLimit > 1) {
+                    data.upperVolumeLimit = data.upperVolumeLimit / 100;
+                }
             } else {
                 delete data.upperVolumeLimit;
             }
@@ -804,7 +815,7 @@ module.exports = function (RED) {
                     this.send(msg);
                 });
             } catch (err) {
-                errorHandler(this, err, 'Exception occured on cast media to oputput', 'internal error');
+                errorHandler(this, err, 'Exception occurred on cast media to output', 'internal error');
             }
             // This.error("Input parameter wrong or missing. You need to setup (or give in the input message) the 'url' and 'content type' or the 'message' and 'language'!!");
             // this.status({fill:"red",shape:"dot",text:"error - input parameter"});
