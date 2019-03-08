@@ -65,7 +65,8 @@
   "dependencies": {
     "castv2-client": "^1.2.0",
     "google-tts-api": ">=0.0.4",
-    "util": ">=0.8.0"
+    "util": ">=0.8.0",
+    "bonjour": "^3.5.0"
   },
   "devDependencies": {
     "camo-purge": "^1.0.2",

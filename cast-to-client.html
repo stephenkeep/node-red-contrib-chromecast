@@ -1,13 +1,13 @@
 <script type="text/x-red" data-template-name="cast-to-client">
     <div class="form-row">
         <label for="node-input-ip"><i class="fa fa-google"></i> IP</label>
-        <input type="text" id="node-input-ip" placeholder="0.0.0.0">
+        <input type="text" id="node-input-ip" placeholder="0.0.0.0" style="width:60%;" >
+        <a id="node-config-lookup-ipaddress" class="btn"><i id="node-config-lookup-ipaddress-icon" class="fa fa-search"></i></a>
     </div>
     <div class="form-row">
         <label for="node-input-port">Port</label>
         <input type="text" id="node-input-port" placeholder="(optional) 8009">
     </div>
-
     <hr>
     <div class="form-row">
         <label for="node-input-url"><i class="fa fa-file-audio-o"></i> Media Url</label>
@@ -219,7 +219,7 @@
         icon: 'default.png', // saved in  icons/myicon.png - myicon.png
         color: '#FFFF00',
         label: function () {
-            return this.name || 'Cast';
+            return this.name || ('Cast '+ this.ip + ':'+ this.port);
         },
         labelStyle: function () {
             return this.name ? 'node_label_italic' : '';
@@ -229,6 +229,32 @@
             $('.cast-volume').spinner({
                 max: 100,
                 min: 0
+            });
+            $("#node-config-lookup-ipaddress").click(function() {   
+                $("#node-config-lookup-ipaddress-icon").removeClass('fa-search');
+                $("#node-config-lookup-ipaddress-icon").addClass('spinner');
+                $("#node-config-lookup-ipaddress").addClass('disabled');
+                $.getJSON('ipaddresses',function(data) {
+                    $("#node-config-lookup-ipaddress-icon").addClass('fa-search');
+                    $("#node-config-lookup-ipaddress-icon").removeClass('spinner');
+                    $("#node-config-lookup-ipaddress").removeClass('disabled');
+                    var items = [];
+
+                    $.each(data, function(i, element){
+                        items.push(element.label + " (" + element.ip + ":" + element.port + ")");
+                    });
+                    $("#node-input-ip").autocomplete({
+                        source:items,
+                        minLength:0,
+                        close: function( event, ui ) {
+                            var str = this.value;
+                            var elements = str.substring(str.lastIndexOf("(") + 1, str.lastIndexOf(")")).split(":");
+                            $("#node-input-ip").val(elements[0]);
+                            $("#node-input-port").val(elements[1]);
+                            $("#node-input-ip").autocomplete( "destroy" );
+                        }
+                    }).autocomplete("search","");
+                });
             });
         }
     });</script>
