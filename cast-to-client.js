@@ -814,36 +814,37 @@ module.exports = function (RED) {
             return null;
         });
 
-        discoverIpAddresses('googlecast', function (ipaddresses) {
-            RED.httpAdmin.get('/ipaddresses', function (req, res) {
+        discoverIpAddresses('googlecast', (ipaddresses) => {
+            RED.httpAdmin.get('/ipaddresses', (req, res) => {
                 res.json(ipaddresses);
             });
         });
     }
 
     function discoverIpAddresses(serviceType, discoveryCallback) {
-        var ipaddresses = [];
-        var bonjour = require('bonjour')();
-        var browser = bonjour.find({
-          type: serviceType
-        }, function (service) {
-          service.addresses.forEach(function (ip) {
-            if (ip.split(".").length == 4) {
-              ipaddresses.push({
-                ip: ip,
-                port: service.port,
-                label: service.txt.md            
-              });
+        const ipaddresses = [];
+        const bonjour = require('bonjour')();
+        const browser = bonjour.find({
+            type: serviceType
+        }, (service) => {
+            service.addresses.forEach((ip) => {
+                if (ip.split(".").length == 4) {
+                    ipaddresses.push({
+                        ip: ip,
+                        port: service.port,
+                        label: service.txt.md
+                    });
+                }
+            });
+
+            // delay for all services to be discovered
+            if (discoveryCallback) {
+                setTimeout(() => {
+                    discoveryCallback(ipaddresses);
+                }, 2000);
             }
-          });
-    
-          // delay for all services to be discovered
-          if (discoveryCallback)
-            setTimeout(function () {
-              discoveryCallback(ipaddresses);
-            }, 2000);
         });
-     }
+    }
 
     RED.nodes.registerType('cast-to-client', CastNode);
 };
