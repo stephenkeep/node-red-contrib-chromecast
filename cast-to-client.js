@@ -58,8 +58,8 @@ const errorHandler = function (node, err, messageText, stateText) {
             text: stateText
         });
     } else if (console) {
-        console.error(messageText);
-        console.error(util.inspect(err, Object.getOwnPropertyNames(err)));
+        console.error(messageText); // eslint-disable-line
+        console.error(util.inspect(err, Object.getOwnPropertyNames(err))); // eslint-disable-line
     }
     return false;
 };
@@ -824,11 +824,11 @@ module.exports = function (RED) {
     function discoverIpAddresses(serviceType, discoveryCallback) {
         const ipaddresses = [];
         const bonjour = require('bonjour')();
-        const browser = bonjour.find({
+        bonjour.find({
             type: serviceType
         }, (service) => {
             service.addresses.forEach((ip) => {
-                if (ip.split(".").length == 4) {
+                if (ip.split('.').length === 4) {
                     ipaddresses.push({
                         ip: ip,
                         port: service.port,

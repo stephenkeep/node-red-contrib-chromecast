@@ -230,30 +230,30 @@
                 max: 100,
                 min: 0
             });
-            $("#node-config-lookup-ipaddress").click(function() {   
-                $("#node-config-lookup-ipaddress-icon").removeClass('fa-search');
-                $("#node-config-lookup-ipaddress-icon").addClass('spinner');
-                $("#node-config-lookup-ipaddress").addClass('disabled');
-                $.getJSON('ipaddresses',function(data) {
-                    $("#node-config-lookup-ipaddress-icon").addClass('fa-search');
-                    $("#node-config-lookup-ipaddress-icon").removeClass('spinner');
-                    $("#node-config-lookup-ipaddress").removeClass('disabled');
-                    var items = [];
+            $('#node-config-lookup-ipaddress').click(() => {
+                $('#node-config-lookup-ipaddress-icon').removeClass('fa-search');
+                $('#node-config-lookup-ipaddress-icon').addClass('spinner');
+                $('#node-config-lookup-ipaddress').addClass('disabled');
+                $.getJSON('ipaddresses',(data) => {
+                    $('#node-config-lookup-ipaddress-icon').addClass('fa-search');
+                    $('#node-config-lookup-ipaddress-icon').removeClass('spinner');
+                    $('#node-config-lookup-ipaddress').removeClass('disabled');
+                    const items = [];
 
-                    $.each(data, function(i, element){
-                        items.push(element.label + " (" + element.ip + ":" + element.port + ")");
+                    $.each(data, (i, element) => {
+                        items.push(element.label + ' (' + element.ip + ':' + element.port + ')');
                     });
-                    $("#node-input-ip").autocomplete({
+                    $('#node-input-ip').autocomplete({
                         source:items,
                         minLength:0,
                         close: function( event, ui ) {
-                            var str = this.value;
-                            var elements = str.substring(str.lastIndexOf("(") + 1, str.lastIndexOf(")")).split(":");
-                            $("#node-input-ip").val(elements[0]);
-                            $("#node-input-port").val(elements[1]);
-                            $("#node-input-ip").autocomplete( "destroy" );
+                            const str = this.value;
+                            const elements = str.substring(str.lastIndexOf('(') + 1, str.lastIndexOf(')')).split(':');
+                            $('#node-input-ip').val(elements[0]);
+                            $('#node-input-port').val(elements[1]);
+                            $('#node-input-ip').autocomplete( 'destroy' );
                         }
-                    }).autocomplete("search","");
+                    }).autocomplete('search','');
                 });
             });
         }
