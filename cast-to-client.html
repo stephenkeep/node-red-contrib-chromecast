@@ -246,7 +246,7 @@
                     $('#node-input-ip').autocomplete({
                         source:items,
                         minLength:0,
-                        close: function( event, ui ) {
+                        close: function( _event, _ui ) {
                             const str = this.value;
                             const elements = str.substring(str.lastIndexOf('(') + 1, str.lastIndexOf(')')).split(':');
                             $('#node-input-ip').val(elements[0]);
