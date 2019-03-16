@@ -219,7 +219,10 @@
         icon: 'default.png', // saved in  icons/myicon.png - myicon.png
         color: '#FFFF00',
         label: function () {
-            return this.name || ('Cast '+ this.ip + ':'+ this.port);
+            if (this.name) {
+                return this.name;
+            }
+            return ('Cast '+ this.ip + ((this.port) ? ':'+ this.port : ''));
         },
         labelStyle: function () {
             return this.name ? 'node_label_italic' : '';

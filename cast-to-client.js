@@ -499,37 +499,29 @@ const doCast = function (node, media, options, callbackResult) {
         });
     };
 
-    client.on('error', onError);
-    client.on('status', onStatus);
+    try {
+        client.on('error', onError);
+        client.on('status', onStatus);
 
-    if (typeof options.port === 'undefined') {
-        node.debug('connect to client ip=\'' + options.ip + '\'');
-        node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
-        if ((typeof options.status !== 'undefined' && options.status === true) ||
-            (typeof media === 'undefined') || (media === null)) {
-            client.connect(options.ip, statusCallback);
-        } else if (media.mediaList && media.mediaList.length > 0) {
-            client.connect(options.ip, launchQueueCallback);
-        } else if (media.contentType.indexOf('youtube') !== -1) {
-            node.error('currently not supported');
-            // Client.connect(options.ip, launchYTCallback);
-        } else {
-            client.connect(options.ip, launchDefCallback);
+        if (typeof options.host === 'undefined') {
+            options.host = options.ip;
         }
-    } else {
+
         node.debug('connect to client ip=\'' + options.ip + '\' port=\'' + options.port + '\'');
         node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
         if ((typeof options.status !== 'undefined' && options.status === true) ||
             (typeof media === 'undefined') || (media === null)) {
-            client.connect(options.ip, options.port, statusCallback);
+            client.connect(options, statusCallback);
         } else if (media.mediaList && media.mediaList.length > 0) {
-            client.connect(options.ip, launchQueueCallback);
+            client.connect(options, launchQueueCallback);
         } else if (media.contentType.indexOf('youtube') !== -1) {
             node.error('currently not supported');
-            // Client.connect(options.ip, options.port, launchYTCallback);
+            // Client.connect(options, launchYTCallback);
         } else {
-            client.connect(options.ip, options.port, launchDefCallback);
+            client.connect(options, launchDefCallback);
         }
+    } catch (err) {
+        errorHandler(node, err, 'Exception occurred on load media', 'exception load media');
     }
 };
 
