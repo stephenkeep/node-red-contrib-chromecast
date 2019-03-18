@@ -41,16 +41,16 @@
         <input type="text" id="node-input-volume" class="cast-volume" placeholder="(optional) 0-100">
     </div>
 
-    <div class="form-tips"><b>Tip:</b> You can also define all properties as part of the incomming message. This would be used priorized than the settings here.<br />
+    <div class="form-tips"><b>Tip:</b> You can also define all properties as part of the incoming message. This would be used priories than the settings here.<br />
         <code>msg.url</code> or <code>msg.payload.url</code><br />
         <code>msg.urlList</code> / <code>msg.payload.urlList</code><br />
         <code>msg.contentType</code> / <code>msg.payload.contentType</code><br />
         <code>msg.imageUrl</code> / <code>msg.payload.imageUrl</code><br />
         <code>msg.message</code> / <code>msg.payload.message</code><br />
         <code>msg.language</code> / <code>msg.payload.language</code><br />
-        <code>msg.ip</code> / <code>msg.payload.ip</code> the IP address of the device to cast<br />
+        <code>msg.ip</code> / <code>msg.payload.ip</code> the IP address of the device to cast <br />
         <code>msg.port</code> / <code>msg.payload.port</code> the port of the device (if not given default <code>8009</code> will be used)<br />
-        <code>msg.volume</code> / <code>msg.payload.volume</code> (optional) a number 0-100 whhere the volume should be set<br />
+        <code>msg.volume</code> / <code>msg.payload.volume</code> (optional) a number 0-100 where the volume should be set <br />
     </div>
 
     <hr>
@@ -109,7 +109,7 @@
         <dd> the volume should be muted if set to false, otherwise the volume will be unmuted.</dd>
 
         <dt class="optional">status <span class="property-type">boolean</span></dt>
-        <dd> if this property is set to truie, **only** the status will be given as output and nothing else will be done.</dd>
+        <dd> if this property is set to true, **only** the status will be given as output and nothing else will be done.</dd>
     </dl>
 
  <h3>Outputs</h3>
@@ -125,16 +125,16 @@
      <h3>Details</h3>
      <p>there are 3 different use cases:</p>
      <ol>
-         <li>play a media file<br />
+         <li>play a media file <br />
          For this the url and the content type needs to be specified. Thus can
          be done in the configuration or passed as a message property <code>msg.url</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.url</code> and <code>msg.payload.contentType</code><br /></li>
-         <li>play a queue of media file<br />
+         <li>play a queue of media file <br />
          For this the urlList and the content type needs to be specified. Thus can
          be done in the configuration or passed as a message property <code>msg.urlList</code> and <code>msg.contentType</code> or give a payload object with the two properties <code>msg.payload.urlList</code> and <code>msg.payload.contentType</code><br /></li>
-         <li>speak a given message, converted by google tts<br />
+         <li>speak a given message, converted by google tts <br />
          For this the message needs to be specified. Thus can
          be done in the configuration or pass as a message property <code>msg.message</code> or give a payload object with the property <code>msg.payload.message</code></li>
-         <li>get the state of the cast device<br />
+         <li>get the state of the cast device <br />
          For this no url or message has to be specified.</li>
      </ol>
      <p>If there is a combination of the message and the url, first the media file given by URL will
@@ -198,7 +198,7 @@
                 required: false,
                 validate: function (v) {
                     return RED.validators.number()(v) || (v === '');
-                    // RED.validators.regex(/^(\s*|\d+)$/) does'n work, because can be empty
+                    // RED.validators.regex(/^(\s*|\d+)$/) does not work, because can be empty
                 }
             },
             volume: {
