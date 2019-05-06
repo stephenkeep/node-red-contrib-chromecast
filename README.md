@@ -16,6 +16,25 @@ These nodes are based on a fork of the node-red-contrib-chromecast. It is for st
 
 > This is still in development!
 
+
+## Table of contents
+
+- [node-red-contrib-cast for NodeRED](#node-red-contrib-cast-for-nodered)
+  * [Installation](#installation)
+  * [Quick Start](#quick-start)
+    + [stream a url](#stream-a-url)
+    + [sends an text to Google TTS](#sends-an-text-to-google-tts)
+    + [play a video on chromecast](#play-a-video-on-chromecast)
+    + [get status of a cast device](#get-status-of-a-cast-device)
+  * [Implemented Nodes](#implemented-nodes)
+  * [How to use](#how-to-use)
+  * [Advanced](#advanced)
+  * [Tip](#tip)
+  * [Examples](#examples)
+  * [Bugs and Feedback](#bugs-and-feedback)
+  * [LICENSE](#license)
+  * [Other](#other)
+
 ## Installation
 
 `npm install node-red-contrib-cast`
