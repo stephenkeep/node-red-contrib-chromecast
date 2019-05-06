@@ -36,7 +36,7 @@ Simple flow that sends an text to Google TTS and the result to a the chromecast 
 
 ![example 2](images/example2.png?raw=true)
 
-    [{"id":"8d9663a.05e27a","type":"cast-to-client","z":"d900d7d9.c4c498","name":"","url":null,"contentType":"","message":null,"language":"en","ip":"","port":"","volume":null,"x":590,"y":200,"wires":[["b885e401.447548"]]},{"id":"6faf449b.c11efc","type":"inject","z":"d900d7d9.c4c498","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":160,"y":200,"wires":[["23bdf480.46b85c"]]},{"id":"23bdf480.46b85c","type":"change","z":"d900d7d9.c4c498","name":"","rules":[{"t":"set","p":"ip","pt":"msg","to":"192.168.1.125","tot":"str"},{"t":"set","p":"url","pt":"msg","to":"Word Up","tot":"str"},{"t":"set","p":"language","pt":"msg","to":"En-gb","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":380,"y":200,"wires":[["8d9663a.05e27a"]]},{"id":"b885e401.447548","type":"debug","z":"d900d7d9.c4c498","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":790,"y":200,"wires":[]},{"id":"9a5a2ce.5ae7ed","type":"comment","z":"d900d7d9.c4c498","name":"say a text","info":"","x":120,"y":160,"wires":[]}]
+    [{"id":"8d9663a.05e27a","type":"cast-to-client","z":"d900d7d9.c4c498","name":"","url":null,"contentType":"","message":null,"language":"en","ip":"","port":"","volume":null,"x":590,"y":200,"wires":[["b885e401.447548"]]},{"id":"6faf449b.c11efc","type":"inject","z":"d900d7d9.c4c498","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":160,"y":200,"wires":[["23bdf480.46b85c"]]},{"id":"23bdf480.46b85c","type":"change","z":"d900d7d9.c4c498","name":"","rules":[{"t":"set","p":"ip","pt":"msg","to":"192.168.1.125","tot":"str"},{"t":"set","p":"message","pt":"msg","to":"Word Up","tot":"str"},{"t":"set","p":"language","pt":"msg","to":"En-gb","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":380,"y":200,"wires":[["8d9663a.05e27a"]]},{"id":"b885e401.447548","type":"debug","z":"d900d7d9.c4c498","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":790,"y":200,"wires":[]},{"id":"9a5a2ce.5ae7ed","type":"comment","z":"d900d7d9.c4c498","name":"say a text","info":"","x":120,"y":160,"wires":[]}]
 
 ### play a video on chromecast
 
@@ -164,24 +164,25 @@ or if currently playing media
 
 ## Implemented Nodes
 
-- Cast Node - Send media to chromecast or googole home devices
+- Cast Node - Send media to chromecast or google home devices
 
 ## How to use
 
-The cast node has a couple of settings, which can be provided by the configuration or by the incomming message object.
+The cast node has a couple of settings, which can be provided by the configuration or by the incoming message object.
 
-Configuration posibilities:<br>
+Configuration possibilities:<br>
 ![configuration of the node](images/node-cast-properties.png?raw=true)
 
-Options for the incomming message object:
+Options for the incoming message object:
 
 - **IP**, `msg.ip` or `msg.payload.ip` the IP address of the device to cast the media. Could also be defined in the configuration of the node.
 - **Port**, `msg.port` or `msg.payload.port` the port of the device (if not given default <code>8009</code> will be used).
-- **Media Url**, `msg.url` or `msg.payload.url` url to a media file which should be cast to the cast device. For a chromecast this chould be a media or a viideo file. For a Google Home device without a display this could only a audio file.
+- **Media Url**, `msg.url` or `msg.payload.url` url to a media file which should be cast to the cast device. For a chromecast this could be a media or a video file. For a Google Home device without a display this could only a audio file.
 - **Media Type**, `msg.contentType` or `msg.payload.contentType` the content type (mime type) of the file in the url. This property is required if a url is given. Could also be defined in the configuration of the node.
 - **Image Url**, `msg.imageUrl` or `msg.payload.imageUrl` url to a image file which represents the artwork for the url which should be cast to the cast device. For a chromecast this should be an image file. For a Google Home device without a display this is irrelevant.
-- **Message**, `msg.message` or `msg.payload.message` a text which should be send to the google tts engine to convert to a mp3 file.
-- **Language**, `msg.language` or `msg.payload.language` the language which should be used for conveting the message to the media file.
+- **Image Url**, `msg.imageUrl` or `msg.payload.imageUrl` url to a image file which represents the artwork for the url which should be cast to the cast device. For a chromecast this should be an image file. For a Google Home device without a display this is irrelevant.
+- **Title**, `msg.contentTitle` or `msg.payload.contentTitle` a text which should be send to the google tts engine as the title of the message. For TTS the `msg.topic` will be set as contentTitle if no `msg.contentTitle` or `msg.payload.contentTitle` are given. Otherwise the filename will be used.
+- **Language**, `msg.language` or `msg.payload.language` the language which should be used for converting the message to the media file.
 - **Volume**, `msg.volume` or `msg.payload.volume` the volume should be set.
 
 - Additional options (not configurable):
@@ -191,6 +192,7 @@ Options for the incomming message object:
   - `msg.muted` or `msg.payload.muted` the volume will be muted if set to false, otherwise the volume will be unmuted.
   - `msg.seek` or `msg.payload.seek` will sets the current position in the stream.
   - `msg.duration` or `msg.payload.duration` will sets the duration of the playing stream in seconds.
+  - `msg.urlList` or `msg.payload.urlList` could be set to a list of urls which should be played. This could be an array or a string with multiple urls separated by comma, semicolon, lineBreak or |.
 
 So the config can be at 3 places. The config of the node, a property of the `msg.payload` or a property of the `msg` object. The information is loaded in that order (e.g. url):
 
@@ -219,7 +221,7 @@ Common Audio File MIME Types are:
 | -------------- | ---------------------- |
 | au             | audio/basic            |
 | snd            | audio/basic            |
-| Linear PCM     | auido/L24              |
+| Linear PCM     | audio/L24              |
 | mid            | audio/mid              |
 | rmi            | audio/mid              |
 | mp3            | audio/mp3              |
@@ -242,7 +244,7 @@ More advanced control is possible by using `msg.payload.media`. This must be an 
 
 | Name        | Type   | Description                                                                                                                                                                                                             |
 | ----------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| contentId   | string | Url of the media.<br>If the url is defined in confuguration or by `msg.payload.url` or `msg.url` this property will be set or overwritten.                                                                              |
+| contentId   | string | Url of the media.<br>If the url is defined in configuration or by `msg.payload.url` or `msg.url` this property will be set or overwritten.                                                                              |
 | streamType  | string | Describes the type of media artifact as one of the following:<br> `NONE`, `BUFFERED` or `LIVE`.<br>If not defined, `BUFFERED` will be used.                                                                             |
 | contentType | string | MIME content type of the media being played.<br>If defined in configuration or by `msg.contentType` or `msg.payload.contentType` this property will be set or overwritten.<br>If not defined, `audio/mp3` will be used. |
 | _metadata_  | object | [metadata](https://developers.google.com/cast/docs/reference/messages#MediaInformation) which should be used.                                                                                                           |
@@ -250,12 +252,29 @@ More advanced control is possible by using `msg.payload.media`. This must be an 
 
 ## Tip
 
-To differentiate different recivers, it may be helpful to choose different icons.<br>
+To differentiate different receivers, it may be helpful to choose different icons.<br>
 ![node appearance](images/appearance2.png?raw=true)<br>
 This is possible by choosing another icon in the Node Settings:<br>
 ![node settings](images/changing_node_icon.png?raw=true)<br>
 For this purpose, the node already comes with a selection of useful icons:<br>
 ![useful icons](images/node-icons.png?raw=true)
+
+## Examples
+
+### Play local files
+
+The node sends only the address of a media file to the cast device. So the cast device needs access to that media file. For normal local files this is not possible. As a solution to this you can serve an mp3 file directly from Node-Red using an HTTP node:
+
+![example3](images/example3.png?raw=true)
+
+	[{"id":"e9028c5b.27f29","type":"comment","z":"9e5f07b4.280818","name":"Doorbell routine","info":"","x":120,"y":880,"wires":[]},{"id":"8d5390b3.5e3e8","type":"link out","z":"9e5f07b4.280818","name":"","links":["c873cb6.6216e38"],"x":395,"y":1080,"wires":[],"icon":"node-red-contrib-huemagic/hue-group.png"},{"id":"4b9bb17b.5c119","type":"http in","z":"9e5f07b4.280818","name":"","url":"/doorbell","method":"get","upload":false,"swaggerDoc":"","x":110,"y":940,"wires":[["3283748e.b1669c"]]},{"id":"156d5629.1e369a","type":"http response","z":"9e5f07b4.280818","name":"","statusCode":"","headers":{"content-type":"audio/mpeg"},"x":410,"y":940,"wires":[]},{"id":"3283748e.b1669c","type":"file in","z":"9e5f07b4.280818","name":"doorbell.mp3","filename":"/home/pi/.node-red/doorbell.mp3","format":"","chunk":false,"sendError":false,"x":270,"y":940,"wires":[["156d5629.1e369a"]]},{"id":"821eb341.0478b","type":"link out","z":"9e5f07b4.280818","name":"","links":["ac60ad8.0709d5"],"x":395,"y":1120,"wires":[],"icon":"node-red-contrib-telegrambot-home/telegram.png"},{"id":"359f33cd.ed919c","type":"ButtonPressed","z":"9e5f07b4.280818","name":"Dash Button","mac":"${DASHBUTTONMAC}","x":110,"y":1060,"wires":[["5b101da.ce5abe4","59398cb6.bb6134","56f6951f.34631c","ba9ea684.c25988"]]},{"id":"5b101da.ce5abe4","type":"trigger","z":"9e5f07b4.280818","op1":"{\"ip\":\"${CASTIP}\",\"url\":\"http://${NODEREDIP}:1880/doorbell\",\"contentType\":\"audio/mp3\",\"volume\":50}","op2":"{\"ip\":\"${CASTIP}\",\"volume\":50}","op1type":"json","op2type":"json","duration":"13","extend":false,"units":"s","reset":"","bytopic":"all","name":"TTS + reset volume","x":330,"y":1000,"wires":[["f739fc31.14339"]]},{"id":"59398cb6.bb6134","type":"trigger","z":"9e5f07b4.280818","op1":"{\"ip\":\"${CASTIP}\",\"url\":\"http://${NODEREDIP}:1880/doorbell\",\"contentType\":\"audio/mp3\",\"volume\":50}","op2":"{\"ip\":\"${CASTIP}\",\"volume\":30}","op1type":"json","op2type":"json","duration":"13","extend":false,"units":"s","reset":"","bytopic":"all","name":"TTS + reset volume","x":330,"y":1040,"wires":[["61966b21.195fb4"]]},{"id":"56f6951f.34631c","type":"change","z":"9e5f07b4.280818","name":"Hue alert","rules":[{"t":"set","p":"payload","pt":"msg","to":"{\"alert\":2,\"hex\":\"ffca7b\"}","tot":"json"}],"action":"","property":"","from":"","to":"","reg":false,"x":300,"y":1080,"wires":[["8d5390b3.5e3e8"]]},{"id":"ba9ea684.c25988","type":"change","z":"9e5f07b4.280818","name":"Message","rules":[{"t":"set","p":"payload","pt":"msg","to":"Quelqu'un sonne a la porte !","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":300,"y":1120,"wires":[["821eb341.0478b"]]},{"id":"f739fc31.14339","type":"cast-to-client","z":"9e5f07b4.280818","name":"","url":"","contentType":"","message":"","language":"fr","ip":"","port":"","volume":"","x":490,"y":1000,"wires":[[]]},{"id":"61966b21.195fb4","type":"cast-to-client","z":"9e5f07b4.280818","name":"","url":"","contentType":"","message":"","language":"fr","ip":"","port":"","volume":"","x":490,"y":1040,"wires":[[]]}]
+
+### changing ip, url, contentType, streamType
+
+	[{"id":"c4d9d977.484068","type":"cast-to-client","z":"d900d7d9.c4c498","name":"","url":"","contentType":"","message":"","language":"en","ip":"localhost","port":"","volume":"","x":570,"y":600,"wires":[["98ac674c.cf52d8"]]},{"id":"86798168.185b7","type":"inject","z":"d900d7d9.c4c498","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":140,"y":600,"wires":[["b8e606ea.49f628"]]},{"id":"b8e606ea.49f628","type":"change","z":"d900d7d9.c4c498","name":"","rules":[{"t":"set","p":"ip","pt":"msg","to":"192.168.1.125","tot":"str"},{"t":"set","p":"url","pt":"msg","to":"http://does niot exists","tot":"str"},{"t":"set","p":"contentType","pt":"msg","to":"audio/mp3","tot":"str"},{"t":"set","p":"streamType","pt":"msg","to":"BUFFERED","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":360,"y":600,"wires":[["c4d9d977.484068"]]},{"id":"98ac674c.cf52d8","type":"debug","z":"d900d7d9.c4c498","name":"test3","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","x":750,"y":600,"wires":[]}]
+
+
+
 
 ## Bugs and Feedback
 
