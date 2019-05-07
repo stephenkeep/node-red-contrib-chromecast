@@ -78,23 +78,56 @@ const getContentType = function (data, node, fileName) {
     if (fileName) {
         const contentTypeMap = {
             youtube: 'youtube/video',
+            // official supported https://developers.google.com/cast/docs/media
+            aac:'video/mp4',
             mp3: 'audio/mp3',
+            m4a: 'audio/mp4',
+            mpa: 'audio/mpeg',
             mp4: 'audio/mp4',
+            webm: 'video/webm',
+            vp8: 'video/webm',
+            wav: 'audio/vnd.wav',
+            bmp: 'image/bmp',
+            gif: 'image/gif',
+            jpeg: 'image/jpeg',
+            jpg: 'image/jpeg ',
+            jpe: 'image/jpeg',
+            png: 'image/png',
+            webp: 'image/webp',
+            // additional other formats
+            au: 'audio/basic',
+            snd: 'audio/basic',
+            mp2: 'audio/x-mpeg',
             mid: 'audio/mid',
+            midi: 'audio/mid',
             rmi: 'audio/mid',
             aif: 'audio/x-aiff',
-            m3u: 'audio/x-mpegurl',
-            ogg: 'audio/ogg',
-            wav: 'audio/vnd.wav',
+            aiff: 'audio/x-aiff',
+            aifc: 'audio/x-aiff',
+            mov: 'video/quicktime',
+            qt: 'video/quicktime',
             flv: 'video/x-flv',
-            m3u8: 'application/x-mpegURL',
+            mpeg: 'video/mpeg',
+            mpg: 'video/mpeg',
+            mpe: 'video/mpeg',
             mjpg: 'video/x-motion-jpeg',
             mjpeg: 'video/x-motion-jpeg',
             '3gp': 'video/3gpp',
-            mov: 'video/quicktime',
             avi: 'video/x-msvideo',
             wmv: 'video/x-ms-wmv',
-            ra: 'audio/vnd.rn-realaudio'
+            movie: 'video/x-sgi-movie',
+            m3u: 'audio/x-mpegurl',
+            ogg: 'audio/ogg',
+            ogv: 'audio/ogg',
+            ra: 'audio/vnd.rn-realaudio', // audio/x-pn-realaudio'
+            stream: 'audio/x-qt-stream',
+            rpm: 'audio/x-pn-realaudio-plugin',
+            ram: 'audio/x-pn-realaudio',
+            m3u8: 'application/x-mpegURL',
+            svg: 'image/svg',
+            tiff: 'image/tiff',
+            tif: 'image/tiff',
+            ico: 'image/x-icon'
         };
 
         const ext = fileName.split('.')[fileName.split('.').length - 1];
@@ -110,6 +143,10 @@ const getContentType = function (data, node, fileName) {
 };
 
 const addGenericMetadata = function (media, imageUrl, contentTitle) {
+    if (!contentTitle) {
+        contentTitle = media.contentTitle;
+    }
+
     if (!contentTitle) {
         // Default from url
         contentTitle = media.contentId;
@@ -145,7 +182,8 @@ const getSpeechUrl = function (node, text, language, options, callback) {
         const media = {
             contentId: url,
             contentType: 'audio/mp3',
-            streamType: 'BUFFERED' // Or LIVE
+            imageUrl: options.media.imageUrl,
+            contentTitle: options.media.contentTitle || options.topic
         };
         doCast(node, media, options, (res, data) => {
             callback(url, data);
@@ -163,7 +201,7 @@ const doCast = function (node, media, options, callbackResult) {
             node.send([null, {
                 payload: status,
                 type: 'status',
-                topic: ''
+                topic: options.topic + '/status'
             }]);
         }
     };
@@ -386,10 +424,10 @@ const doCast = function (node, media, options, callbackResult) {
                     }
                     if (typeof media.streamType !== 'string' ||
                         media.streamType === '') {
-                        media.streamType = 'BUFFERED';
+                        media.streamType = 'BUFFERED'; // Or LIVE
                     }
 
-                    node.debug('loading player with media=\'' + util.inspect(media, Object.getOwnPropertyNames(media)) + '\'');
+                    node.debug('loading player with media=\'' + util.inspect(media, Object.getOwnPropertyNames(media)) + '\' streamType=' + media.streamType);
 
                     addGenericMetadata(media);
 
@@ -452,7 +490,7 @@ const doCast = function (node, media, options, callbackResult) {
                     node.debug('queue data=\'' + util.inspect(media, Object.getOwnPropertyNames(media)) + '\'');
 
                     for (let i = 0; i < media.mediaList.length; i++) {
-                        addGenericMetadata(media.mediaList[i].media, media.imageUrl);
+                        addGenericMetadata(media.mediaList[i].media, media.imageUrl, media.contentTitle);
                     }
 
                     player.queueLoad(
@@ -567,10 +605,10 @@ module.exports = function (RED) {
              *********************************************/
             // var creds = RED.nodes.getNode(config.creds); - not used
             const attrs = [
-                'media', 'url', 'urlList', 'imageUrl', 'contentType',
+                'media', 'url', 'urlList', 'imageUrl', 'contentType', 'contentTitle',
                 'streamType', 'message', 'language', 'ip', 'port', 'volume',
                 'lowerVolumeLimit', 'upperVolumeLimit', 'muted', 'mute',
-                'delay', 'stop', 'pause', 'seek', 'duration', 'status'
+                'delay', 'stop', 'pause', 'seek', 'duration', 'status', 'topic'
             ];
 
             const data = {};
@@ -669,31 +707,33 @@ module.exports = function (RED) {
                     contentId: data.url,
                     contentType: data.contentType
                 };
-            } else if (typeof data.urlList !== 'undefined' && data.urlList.length > 0) {
-                // If is a list of files
-                this.debug('initialize playing queue=\'' + data.urlList.length);
-
-                data.media = {};
-                data.media.mediaList = [];
-
+            } else if (typeof data.urlList !== 'undefined') {
+                if (typeof data.urlList === 'string') {
+                    data.urlList = data.urlList.split(/,|;\r\n/).filter((el) => el);
+                }
                 const listSize = data.urlList.length;
-                for (let i = 0; i < listSize; i++) {
-                    const item = data.urlList[i];
+                if (listSize > 0) {
+                    // If is a list of files
+                    this.debug('initialize playing queue=\'' + listSize + '\'');
+                    data.media = {};
+                    data.media.mediaList = [];
+                    for (let i = 0; i < listSize; i++) {
+                        const item = data.urlList[i];
 
-                    const contentType = getContentType(data, this, item);
-                    const mediaItem = {
-                        autoplay: true,
-                        preloadTime: listSize,
-                        startTime: i + 1,
-                        activeTrackIds: [],
-                        playbackDuration: 2,
-                        media: {
-                            contentId: item,
-                            contentType,
-                            streamType: 'BUFFERED'
-                        }
-                    };
-                    data.media.mediaList.push(mediaItem);
+                        const contentType = getContentType(data, this, item);
+                        const mediaItem = {
+                            autoplay: true,
+                            preloadTime: listSize,
+                            startTime: i + 1,
+                            activeTrackIds: [],
+                            playbackDuration: 2,
+                            media: {
+                                contentId: item,
+                                contentType
+                            }
+                        };
+                        data.media.mediaList.push(mediaItem);
+                    }
                 }
             }
 
@@ -718,6 +758,11 @@ module.exports = function (RED) {
                 if (typeof data.imageUrl !== 'undefined' &&
                     data.imageUrl != null) { // eslint-disable-line
                     data.media.imageUrl = data.imageUrl;
+                }
+
+                if (typeof data.contentTitle !== 'undefined' &&
+                    data.contentTitle != null) { // eslint-disable-line
+                    data.media.contentTitle = data.contentTitle;
                 }
             }
 
