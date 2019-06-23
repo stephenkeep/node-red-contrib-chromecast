@@ -243,7 +243,14 @@
                     $('#node-config-lookup-ipaddress').removeClass('disabled');
                     const items = [];
 
-                    $.each(data, (i, element) => {
+console.log(data);
+
+                    const unique = data.filter( (value, index, self) => {
+                        return self.findIndex(i => (i.ip === value.ip && i.port === value.port)) === index;
+                    }); // returns ['a', 1, 2, '1']
+
+                    console.log(unique);
+                    $.each(unique, (i, element) => {
                         items.push(element.label + ' (' + element.ip + ':' + element.port + ')');
                     });
                     $('#node-input-ip').autocomplete({
