@@ -51,7 +51,7 @@ const errorHandler = function (node, err, messageText, stateText) {
 
     if (node) {
         node.error(messageText);
-        node.debug(util.inspect(err, Object.getOwnPropertyNames(err)));
+        node.log(util.inspect(err, Object.getOwnPropertyNames(err)));
         node.status({
             fill: 'red',
             shape: 'ring',
@@ -292,7 +292,7 @@ const doCast = function (node, media, options, callbackResult) {
             });
         }
 
-        if (typeof options.pause !== 'undefined' && options.pause === true) {
+        if (options.pause) {
             node.debug('sending pause signal to player');
 
             client.getSessions((err, sessions) => {
@@ -312,14 +312,16 @@ const doCast = function (node, media, options, callbackResult) {
             });
         }
 
-        if (typeof options.stop !== 'undefined' && options.stop === true) {
+        if (options.stop) {
             node.debug('sending pause signal to player');
             client.getSessions((err, sessions) => {
                 if (err) {
                     errorHandler(node, err, 'Not able to get sessions');
                 } else {
                     client.join(sessions[0], DefaultMediaReceiver, (err, app) => {
-                        if (!app.media.currentSession) {
+                        if (err) {
+                            errorHandler(node, err, 'error joining session');
+                        } else if (!app.media.currentSession) {
                             app.getStatus(() => {
                                 app.stop();
                             });
@@ -415,7 +417,6 @@ const doCast = function (node, media, options, callbackResult) {
                 checkOptions(options);
 
                 if (media !== null &&
-                    typeof media !== 'undefined' &&
                     typeof media === 'object' &&
                     typeof media.contentId !== 'undefined') {
                     if (typeof media.contentType !== 'string' ||
@@ -436,8 +437,8 @@ const doCast = function (node, media, options, callbackResult) {
                     }, (err, status) => {
                         if (err) {
                             errorHandler(node, err, 'Not able to load media', 'error load media');
-                        } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
-                            if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
+                        } else if (options && typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
+                            if (options && typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                                 node.debug('seek to position ' + String(options.seek));
                                 player.seek(options.seek, (err, status) => {
                                     if (err) {
@@ -483,7 +484,6 @@ const doCast = function (node, media, options, callbackResult) {
                 checkOptions(options);
 
                 if (media !== null &&
-                    typeof media !== 'undefined' &&
                     typeof media === 'object' &&
                     typeof media.mediaList !== 'undefined') {
                     node.log('loading player with queue= ' + media.mediaList.length + ' items');
@@ -503,8 +503,8 @@ const doCast = function (node, media, options, callbackResult) {
 
                             if (err) {
                                 errorHandler(node, err, 'Not able to load media', 'error load media');
-                            } else if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
-                                if (typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
+                            } else if (options && typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
+                                if (options && typeof options.seek !== 'undefined' && !isNaN(options.seek)) {
                                     node.debug('seek to position ' + String(options.seek));
                                     player.seek(options.seek, (err, status) => {
                                         if (err) {
@@ -547,7 +547,7 @@ const doCast = function (node, media, options, callbackResult) {
 
         node.debug('connect to client ip=\'' + options.ip + '\' port=\'' + options.port + '\'');
         node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
-        if ((typeof options.status !== 'undefined' && options.status === true) ||
+        if ((options && typeof options.status !== 'undefined' && options.status === true) ||
             (typeof media === 'undefined') || (media === null)) {
             client.connect(options, statusCallback);
         } else if (media.mediaList && media.mediaList.length > 0) {

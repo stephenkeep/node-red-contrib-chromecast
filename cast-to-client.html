@@ -31,7 +31,7 @@
     </div>
 
     <div class="form-row">
-        <label for="node-input-language"><i class="fa fa-language"></i> Language</label>
+        <label for="node-input-language"><i class="fa fa-language"></i> language</label>
         <input type="text" id="node-input-language" placeholder="en">
     </div>
 
@@ -175,7 +175,7 @@
                 value: 'en',
                 required: false,
                 validate: function (v) {
-                    return RED.validators.regex(/^[a-zA-Z]{2,4}(-[a-zA-Z0-9]{2,5}(-[a-zA-Z0-9]{2,5})?)?$/)(
+                    return RED.validators.regex(/^[a-zA-Z]{2,4}(-[a-zA-Z0-9]{2,5}(-[a-zA-Z0-9]{2,5})?(-(Standard|Wavenet)-[A-Z])?)?$/)(
                         v) || (v === '');
                     // we are allow a little more characters as currently used in language codes to be save for future changes
                 }
