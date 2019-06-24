@@ -163,7 +163,7 @@ const addGenericMetadata = function (media, imageUrl, contentTitle) {
         }
     }
     if (!imageUrl) {
-        imageUrl = media.imageUrl || 'https://nodered.org/node-red-icon.png';
+        imageUrl = (media) ? (media.imageUrl || 'https://nodered.org/node-red-icon.png') : 'https://nodered.org/node-red-icon.png';
     }
 
     media.metadata = {
@@ -177,13 +177,17 @@ const addGenericMetadata = function (media, imageUrl, contentTitle) {
 };
 
 const getSpeechUrl = function (node, text, language, options, callback) {
-    googletts(text, language, 1).then(url => {
+    let speed = 1;
+    if (options && !isNaN(options.ttsSpeed)) {
+        speed = Number(options.ttsspeed);
+    }
+    googletts(text, language, speed).then(url => {
         node.debug('returned tts media url=\'' + url + '\'');
         const media = {
             contentId: url,
             contentType: 'audio/mp3',
-            imageUrl: options.media.imageUrl,
-            contentTitle: options.media.contentTitle || options.topic
+            imageUrl: (options.media) ? options.media.imageUrl : 'https://nodered.org/node-red-icon.png',
+            contentTitle: (options.media) ? (options.media.contentTitle || options.topic) : options.topic
         };
         doCast(node, media, options, (res, data) => {
             callback(url, data);
@@ -197,6 +201,7 @@ const doCast = function (node, media, options, callbackResult) {
     const client = new Client();
 
     const onStatus = function (status) {
+        node.debug('onStatus ' + util.inspect(status, { colors: true, compact: 10, breakLength: Infinity }));
         if (node) {
             node.send([null, {
                 payload: status,
@@ -226,7 +231,7 @@ const doCast = function (node, media, options, callbackResult) {
                 errorHandler(node, err, 'Not able to get the volume');
             } else {
                 node.context().set('volume', vol.level);
-                node.debug('volume get from client ' + util.inspect(vol, Object.getOwnPropertyNames(vol)));
+                node.debug('volume get from client ' + util.inspect(vol, { colors: true, compact: 10, breakLength: Infinity }));
                 if (fkt) {
                     fkt(vol);
                 }
@@ -235,6 +240,8 @@ const doCast = function (node, media, options, callbackResult) {
     };
 
     const doSetVolume = function (volume) {
+        node.debug('doSetVolume ' + util.inspect(volume, { colors: true, compact: 10, breakLength: Infinity }));
+
         let obj = {};
         if (typeof volume === 'object') {
             obj = volume;
@@ -251,7 +258,7 @@ const doCast = function (node, media, options, callbackResult) {
                 level: volume
             };
         }
-        node.debug('try to set volume ' + util.inspect(obj, Object.getOwnPropertyNames(obj)));
+        node.debug('try to set volume ' + util.inspect(obj, { colors: true, compact: 10, breakLength: Infinity }));
         client.setVolume(obj, (err, newvol) => {
             const oldVol = node.context().get('volume');
             if (oldVol !== newvol.level) {
@@ -262,14 +269,13 @@ const doCast = function (node, media, options, callbackResult) {
             if (err) {
                 errorHandler(node, err, 'Not able to set the volume');
             } else if (node) {
-                node.log('volume changed to %s', Math.round(newvol.level * 100));
+                node.log('volume changed to ' + Math.round(newvol.level * 100));
             }
         });
     };
 
-    const checkOptions = function (options) {
-        node.debug('checkOptions');
-        node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
+    const checkVolume = function (options) {
+        node.debug('checkVolume ' + util.inspect(options, { colors: true, compact: 10, breakLength: Infinity }));
         if (isTrue(options.muted)) {
             doSetVolume({
                 muted: true
@@ -291,8 +297,10 @@ const doCast = function (node, media, options, callbackResult) {
                 }
             });
         }
+    };
 
-        if (options.pause) {
+    const checkOptions = function (options) {
+        if (isTrue(options.pause)) {
             node.debug('sending pause signal to player');
 
             client.getSessions((err, sessions) => {
@@ -312,20 +320,25 @@ const doCast = function (node, media, options, callbackResult) {
             });
         }
 
-        if (options.stop) {
-            node.debug('sending pause signal to player');
+        if (isTrue(options.stop)) {
+            node.debug('sending stop signal to player');
             client.getSessions((err, sessions) => {
+                node.debug('session data response' + util.inspect(sessions, { colors: true, compact: 10, breakLength: Infinity }));
                 if (err) {
                     errorHandler(node, err, 'Not able to get sessions');
                 } else {
                     client.join(sessions[0], DefaultMediaReceiver, (err, app) => {
+                        node.debug('join session response' + util.inspect(app, { colors: true, compact: 10, breakLength: Infinity }));
                         if (err) {
                             errorHandler(node, err, 'error joining session');
                         } else if (!app.media.currentSession) {
+                            node.debug('send stop 1');
                             app.getStatus(() => {
+                                node.debug('send stop 2');
                                 app.stop();
                             });
                         } else {
+                            node.debug('send stop 3');
                             app.stop();
                         }
                     });
@@ -342,9 +355,9 @@ const doCast = function (node, media, options, callbackResult) {
                 errorHandler(node, err, 'error getting session');
             } else {
                 try {
-                    checkOptions(options);
+                    checkVolume(options);
                     const session = sessions[0]; // For now only one app runs at once, so using the first session should be ok
-                    node.debug('session: ' + util.inspect(sessions, Object.getOwnPropertyNames(sessions)));
+                    node.debug('session ' + util.inspect(sessions, { colors: true, compact: 10, breakLength: Infinity }));
                     if (typeof sessions !== 'undefined' && sessions.length > 0) {
                         client.join(session, DefaultMediaReceiver, (err, player) => {
                             node.debug('join Callback');
@@ -354,6 +367,30 @@ const doCast = function (node, media, options, callbackResult) {
                                 node.debug('session joined ...');
                                 player.on('status', onStatus);
                                 player.on('close', onClose);
+
+                                if (isTrue(options.pause)) {
+                                    node.debug('sending pause ...');
+                                    if (!player.media.currentSession){
+                                        player.getStatus(() => {
+                                            player.pause();
+                                        });
+                                    } else {
+                                        player.pause();
+                                    }
+                                }
+                                if (isTrue(options.stop)) {
+                                    node.debug('sending stop ...');
+                                    if (!player.media.currentSession){
+                                        node.debug('send stop 1');
+                                        player.getStatus(() => {
+                                            node.debug('send stop 2');
+                                            player.stop();
+                                        });
+                                    } else {
+                                        node.debug('send stop 3');
+                                        player.stop();
+                                    }
+                                }
 
                                 node.debug('do get Status from player');
                                 client.getStatus((err, status) => {
@@ -414,6 +451,7 @@ const doCast = function (node, media, options, callbackResult) {
             }
 
             try {
+                checkVolume(options);
                 checkOptions(options);
 
                 if (media !== null &&
@@ -427,8 +465,7 @@ const doCast = function (node, media, options, callbackResult) {
                         media.streamType === '') {
                         media.streamType = 'BUFFERED'; // Or LIVE
                     }
-
-                    node.debug('loading player with media=\'' + util.inspect(media, Object.getOwnPropertyNames(media)) + '\' streamType=' + media.streamType);
+                    node.debug('loading player with media=\'' + util.inspect(media, { colors: true, compact: 10, breakLength: Infinity }) + '\' streamType=' + media.streamType);
 
                     addGenericMetadata(media);
 
@@ -477,17 +514,17 @@ const doCast = function (node, media, options, callbackResult) {
             }
 
             player.on('status', status => {
-                node.debug('QUEUE STATUS ' + util.inspect(status, Object.getOwnPropertyNames(status)));
+                node.debug('QUEUE STATUS ' + util.inspect(status, { colors: true, compact: 10, breakLength: Infinity }));
             });
 
             try {
+                checkVolume(options);
                 checkOptions(options);
 
                 if (media !== null &&
-                    typeof media === 'object' &&
-                    typeof media.mediaList !== 'undefined') {
+                    typeof media === 'object') {
                     node.log('loading player with queue= ' + media.mediaList.length + ' items');
-                    node.debug('queue data=\'' + util.inspect(media, Object.getOwnPropertyNames(media)) + '\'');
+                    node.debug('queue data=\'' + util.inspect(media, { colors: true, compact: 10, breakLength: Infinity }) + '\'');
 
                     for (let i = 0; i < media.mediaList.length; i++) {
                         addGenericMetadata(media.mediaList[i].media, media.imageUrl, media.contentTitle);
@@ -545,8 +582,7 @@ const doCast = function (node, media, options, callbackResult) {
             options.host = options.ip;
         }
 
-        node.debug('connect to client ip=\'' + options.ip + '\' port=\'' + options.port + '\'');
-        node.debug(util.inspect(options, Object.getOwnPropertyNames(options)));
+        node.debug('connect to client ' + util.inspect(options, { colors: true, compact: 10, breakLength: Infinity }));
         if ((options && typeof options.status !== 'undefined' && options.status === true) ||
             (typeof media === 'undefined') || (media === null)) {
             client.connect(options, statusCallback);
@@ -569,6 +605,7 @@ module.exports = function (RED) {
         // Var node = this;
 
         this.on('input', function (msg) {
+            this.debug('getting message ' + util.inspect(msg, { colors: true, compact: 10, breakLength: Infinity }));
             //-----------------------------------------
             // Error Handling
             if (!Client) {
@@ -688,7 +725,6 @@ module.exports = function (RED) {
             } else {
                 delete data.upperVolumeLimit;
             }
-            this.debug(util.inspect(data, Object.getOwnPropertyNames(data)));
 
             if (typeof data.delay !== 'undefined' && !isNaN(data.delay) && data.delay !== '') {
                 data.delay = parseInt(data.delay);
@@ -698,7 +734,7 @@ module.exports = function (RED) {
 
             if (typeof data.url !== 'undefined' &&
                 data.url != null) {  // eslint-disable-line
-                this.debug('initialize playing url=\'' + data.url + '\' of contentType=\'' + data.contentType + '\'');
+                // this.debug('initialize playing url \'' + util.inspect(data, { colors: true, compact: 10, breakLength: Infinity }) + '\'');
 
                 if (typeof data.contentType !== 'string' || data.contentType === '') {
                     data.contentType = getContentType(data, this);
@@ -768,9 +804,10 @@ module.exports = function (RED) {
 
             try {
                 msg.data = data;
+                this.debug(util.inspect(data, { colors: true, compact: 10, breakLength: Infinity }));
 
                 if (data.media) {
-                    this.debug('initialize playing on ip=\'' + data.ip + '\'');
+                    this.debug('initialize playing');
                     this.status({
                         fill: 'green',
                         shape: 'dot',
@@ -809,8 +846,7 @@ module.exports = function (RED) {
                 }
 
                 if (data.message) {
-                    this.debug('initialize getting tts message=\'' + data.message + '\' of language=\'' + data.language + '\'');
-                    this.debug(util.inspect(data, Object.getOwnPropertyNames(data)));
+                    this.debug('initialize getting tts');
                     this.status({
                         fill: 'green',
                         shape: 'ring',
@@ -828,13 +864,14 @@ module.exports = function (RED) {
                     return null;
                 }
 
-                this.debug('only sending unspecified request to ip=\'' + data.ip + '\'');
+                this.debug('only sending unspecified request');
                 this.status({
                     fill: 'yellow',
                     shape: 'dot',
                     text: 'connect to ' + data.ip
                 });
                 doCast(this, null, data, status => {
+                    this.debug('status = ' + util.inspect(status, { colors: true, compact: 10, breakLength: Infinity }));
                     msg.payload = status;
                     this.status({
                         fill: 'green',
