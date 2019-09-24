@@ -603,38 +603,51 @@ module.exports = function (RED) {
     function CastNode(config) {
         RED.nodes.createNode(this, config);
         // Var node = this;
+        this.done = (text, msg) => {
+            if (text) {
+                return this.error(text, msg);
+            }
+            return null;
+        };
 
-        this.on('input', function (msg) {
+        this.on('input', function (msg, send, done) {
+            // If this is pre-1.0, 'send' will be undefined, so fallback to node.send
+            send = send || this.send;
+            done = done || this.done;
+
             this.debug('getting message ' + util.inspect(msg, { colors: true, compact: 10, breakLength: Infinity }));
             //-----------------------------------------
             // Error Handling
             if (!Client) {
-                this.error('Client not defined!! - Installation Problem, Please reinstall!');
+                // this.error('Client not defined!! - Installation Problem, Please reinstall!');
                 this.status({
                     fill: 'red',
                     shape: 'dot',
                     text: 'installation error'
                 });
+                done('Client not defined!! - Installation Problem, Please reinstall!', msg);
                 return;
             }
 
             if (!DefaultMediaReceiver) {
-                this.error('DefaultMediaReceiver not defined!! - Installation Problem, Please reinstall!');
+                // this.error('DefaultMediaReceiver not defined!! - Installation Problem, Please reinstall!');
                 this.status({
                     fill: 'red',
                     shape: 'dot',
                     text: 'installation error'
                 });
+                done('DefaultMediaReceiver not defined!! - Installation Problem, Please reinstall!', msg);
                 return;
             }
 
             if (!googletts) {
-                this.error('googletts not defined!! - Installation Problem, Please reinstall!');
+                // this.error('googletts not defined!! - Installation Problem, Please reinstall!');
                 this.status({
                     fill: 'red',
                     shape: 'dot',
                     text: 'installation error'
                 });
+                done('googletts not defined!! - Installation Problem, Please reinstall!', msg);
                 return;
             }
             /********************************************
@@ -674,12 +687,13 @@ module.exports = function (RED) {
             }
             //-------------------------------------------------------------------
             if (typeof data.ip === 'undefined') {
-                this.error('configuration error: IP is missing!');
+                // this.error('configuration error: IP is missing!');
                 this.status({
                     fill: 'red',
                     shape: 'dot',
                     text: 'No IP given!'
                 });
+                done('configuration error: IP is missing!', msg);
                 return;
             }
             if (typeof data.language === 'undefined' || data.language === '') {
@@ -830,9 +844,11 @@ module.exports = function (RED) {
                                         shape: 'dot',
                                         text: 'ok'
                                     });
-                                    this.send(msg);
+                                    // this.send(msg);
+                                    send(msg);
                                 });
                             }, data2.delay, data2);
+                            done();
                             return null;
                         }
                         this.status({
@@ -840,8 +856,10 @@ module.exports = function (RED) {
                             shape: 'dot',
                             text: 'ok'
                         });
-                        this.send(msg);
+                        // this.send(msg);
+                        send(msg);
                     });
+                    done();
                     return null;
                 }
 
@@ -859,8 +877,9 @@ module.exports = function (RED) {
                             shape: 'dot',
                             text: 'ok'
                         });
-                        this.send(msg);
+                        send(msg); // this.send(msg);
                     });
+                    done();
                     return null;
                 }
 
@@ -885,6 +904,7 @@ module.exports = function (RED) {
             }
             // This.error("Input parameter wrong or missing. You need to setup (or give in the input message) the 'url' and 'content type' or the 'message' and 'language'!!");
             // this.status({fill:"red",shape:"dot",text:"error - input parameter"});
+            done();
             return null;
         });
 
