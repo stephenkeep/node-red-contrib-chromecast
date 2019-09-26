@@ -602,18 +602,13 @@ const doCast = function (node, media, options, callbackResult) {
 module.exports = function (RED) {
     function CastNode(config) {
         RED.nodes.createNode(this, config);
-        // Var node = this;
-        this.done = (text, msg) => {
-            if (text) {
-                return this.error(text, msg);
-            }
-            return null;
-        };
+        const node = this;
 
         this.on('input', function (msg, send, done) {
             // If this is pre-1.0, 'send' will be undefined, so fallback to node.send
-            send = send || this.send;
-            done = done || this.done;
+            // If this is pre-1.0, 'done' will be undefined
+            done = done || function (text, msg) { if (text) { return node.error(text, msg); } return null; };
+            send = send || function (...args) { node.send.apply(node, args); };
 
             this.debug('getting message ' + util.inspect(msg, { colors: true, compact: 10, breakLength: Infinity }));
             //-----------------------------------------
