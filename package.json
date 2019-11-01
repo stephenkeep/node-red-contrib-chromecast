@@ -71,12 +71,12 @@
   },
   "devDependencies": {
     "camo-purge": "^1.0.2",
-    "eslint": "^6.2.1",
+    "eslint": "^6.6.0",
     "eslint-plugin-html": "^6.0.0"
   },
   "disabledSettings": {
     "devDependencies-disabled": {
-      "eslint-plugin-jsdoc": "^4.1.0"
+      "eslint-plugin-jsdoc": "^16.1.1"
     },
     "plugins-disabled": [
       "jsdoc"
